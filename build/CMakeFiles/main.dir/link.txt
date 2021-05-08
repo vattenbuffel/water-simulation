@@ -1,0 +1,1 @@
+/bin/x86_64-linux-gnu-gcc-9 -g   CMakeFiles/main.dir/src/main.c.o CMakeFiles/main.dir/src/glad.c.o CMakeFiles/main.dir/src/circle_creator.c.o  -o main  /usr/lib/x86_64-linux-gnu/libglfw.so.3.3 -lX11 -pthread -lGLU -lGL -lXrandr -lXxf86vm -lXi -lXinerama -lrt -ldl -lm 

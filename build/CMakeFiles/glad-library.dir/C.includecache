@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/noa/c-test/triangle_circle/include/glad/glad.h
+KHR/khrplatform.h
+-
+
+/home/noa/c-test/triangle_circle/src/glad.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+../include/glad/glad.h
+/home/noa/c-test/triangle_circle/include/glad/glad.h
+windows.h
+-
+winapifamily.h
+-
+dlfcn.h
+-
+
