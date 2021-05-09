@@ -1,4 +1,4 @@
-# Install script for directory: /home/noa/c-test/triangle_circle
+# Install script for directory: /home/noa/c-test/water-simulation
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/noa/c-test/triangle_circle/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/noa/c-test/water-simulation/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

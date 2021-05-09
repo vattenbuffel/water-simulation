@@ -14,31 +14,39 @@
  *   Måla in vatten och hinder med musen
  *   Implementera hinder
  *   Kunna måla vatten respektive hinder
+ *   Massively speed up calculating the positions of water
  *
  */
 
-#define NX 10
-#define NY 10
+#define NX 100
+#define NY 100
 
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 800
 
 // Radius of the water circles
-#define RADIUS (SCR_WIDTH / NX)
+#define RADIUS (2*SCR_WIDTH / NX)
 
-// Macro to calculate the index of x of position position x,y in the grid array
-#define INDEX_OF_POS_X(x, y) (y * NX * 3 + x * 3 + 0)
-// Macro to calculate the index of y of position position x,y in the grid array
-#define INDEX_OF_POS_Y(x, y) (y * NX * 3 + x * 3 + 1)
 // Macro to calculate the index of state of position position x,y in the grid
 // array
-#define INDEX_OF_POS_STATE(x, y) (y * NX * 3 + x * 3 + 2)
+#define INDEX_OF_POS(x, y) (y * NX + x)
 
-// Macro to calculate the x pixel value of pos x in grid
-#define POS_TO_PIXEL(x) (x / RADIUS)
-// Macro to calculate the y pixel value of pos y in grid
-#define POS_TO_PIXEL(y) (y / RADIUS)
+// Macro to go from index in grid to col
+#define INDEX_TO_COL(i) (i % NX)
 
+// Macro to go from index in grid to row
+#define INDEX_TO_ROW(i) ((int)i / NX)
+
+// Macro to calculate the x pixel value of col x in grid
+#define COL_TO_PIXEL_X(x) (x * (float)SCR_WIDTH / NX)
+// Macro to calculate the y pixel value of row y in grid
+#define ROW_TO_PIXEL_Y(y) (y * (float)SCR_HEIGHT / NY)
+
+// Macro to go from index in grid to x pixel
+#define INDEX_TO_X(i) (COL_TO_PIXEL_X(INDEX_TO_COL(i)))
+
+// Macro to go from index in grid to y pixel
+#define INDEX_TO_Y(i) (ROW_TO_PIXEL_Y(INDEX_TO_ROW(i)))
 
 enum States {
     states_background,
@@ -65,8 +73,24 @@ const char *fragmentShaderSource =
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(0.0f, 0.5f, 0.8f, 1.0f);\n"
+    "   FragColor = vec4(0.0f, 0.5f, 0.8f, 0.3f);\n"
     "}\n\0";
+
+void circle_from_grid(int *grid, float *vertices, int n_circles) {
+    int center_i = 0;
+    float center_x[n_circles];
+    float center_y[n_circles];
+    for (int i = 0; i < NX * NY; i++) {
+        int state = grid[i];
+        if (state == states_water) {
+            center_x[center_i] = INDEX_TO_X(i);
+            center_y[center_i] = INDEX_TO_Y(i);
+            center_i++;
+        }
+    }
+
+    init_triangle_circles(vertices, RADIUS, center_x, center_y, n_circles);
+}
 
 int main() {
     srand(time(NULL)); // Initialization, should only be called once.
@@ -141,30 +165,30 @@ int main() {
 
     // Create the grid of the water dropplet positions
     int n_circles = 0;
-    static float new_grid[NY * NX * 3];
+    static int new_grid[NY * NX];
     // static float old_grid[NY * NX * 3];
     for (int y = 0; y < NY; y++) {
         for (int x = 0; x < NX; x++) {
-            new_grid[INDEX_OF_POS_X(x, y)] = x;
-            new_grid[INDEX_OF_POS_Y(x, y)] = y;
-
             float state = (float)(rand() % states_max_val);
             assert(state < states_max_val && state >= 0);
-            new_grid[INDEX_OF_POS_STATE(x, y)] = states_water; // state;
-            n_circles += 1; // state==states_water;
+            // new_grid[INDEX_OF_POS(x, y)] = states_water; // state;
+            // n_circles += 1;// state==states_water;
+            new_grid[INDEX_OF_POS(x, y)] = state;
+            n_circles += state == states_water;
         }
     }
 
     // Create the indices array for the circles
-    unsigned int indices[CIRCLES_INDEX_ARRAY_LENGTH(n_circles)];
+    // static unsigned int indices[NX*NY];
+    unsigned int indices[CIRCLES_VERTICES_ARRAY_LENGTH(n_circles)];
     connecting_vertices(indices, n_circles);
 
     // Create the arrays containing the pixel locations of the circle
-    float triangle_circles[CIRCLES_VERTICES_ARRAY_LENGTH(n_circles)];
-    float x_centers[] = {100, 700, 700, 100};
-    float y_centers[] = {100, 100, 500, 500};
-    init_triangle_circles(triangle_circles, RADIUS, x_centers, y_centers,
-                          n_circles);
+    static float triangle_circles[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
+    // float x_centers[] = {100, 700, 700, 100};
+    // float y_centers[] = {100, 100, 500, 500};
+    // init_triangle_circles(triangle_circles, RADIUS, x_centers, y_centers,
+    //                       n_circles);
 
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -224,6 +248,11 @@ int main() {
         // Simulation logic
         // memcpy(old_grid, new_grid, sizeof(new_grid));
         // fall(old_grid, new_grid);
+
+        // Calculate the water droplets based on grid
+        circle_from_grid(new_grid, triangle_circles, n_circles);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_circles),
+                     triangle_circles, GL_DYNAMIC_DRAW);
 
         // input
         // -----

@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/home/noa/c-test/triangle_circle/src/glad.c" "/home/noa/c-test/triangle_circle/build/CMakeFiles/glad-library.dir/src/glad.c.o"
+  "/home/noa/c-test/water-simulation/src/glad.c" "/home/noa/c-test/water-simulation/build/CMakeFiles/glad-library.dir/src/glad.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

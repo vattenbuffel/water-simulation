@@ -1,5 +1,5 @@
-/home/noa/c-test/triangle_circle/build/CMakeFiles/rebuild_cache.dir
-/home/noa/c-test/triangle_circle/build/CMakeFiles/edit_cache.dir
-/home/noa/c-test/triangle_circle/build/CMakeFiles/tests.dir
-/home/noa/c-test/triangle_circle/build/CMakeFiles/main.dir
-/home/noa/c-test/triangle_circle/build/CMakeFiles/glad-library.dir
+/home/noa/c-test/water-simulation/build/CMakeFiles/rebuild_cache.dir
+/home/noa/c-test/water-simulation/build/CMakeFiles/edit_cache.dir
+/home/noa/c-test/water-simulation/build/CMakeFiles/tests.dir
+/home/noa/c-test/water-simulation/build/CMakeFiles/main.dir
+/home/noa/c-test/water-simulation/build/CMakeFiles/glad-library.dir

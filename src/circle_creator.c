@@ -31,8 +31,8 @@ void init_triangle_circle(float *vertices, float radius, float center_x,
 }
 
 void init_triangle_circles(float *vertices, float radius, float *center_x,
-                           float *center_y, int n_triangles) {
-    for (int i = 0; i < n_triangles; i++) {
+                           float *center_y, int n_circles) {
+    for (int i = 0; i < n_circles; i++) {
         float *cur_vertices =
             vertices + CIRCLES_VERTICES_ARRAY_LENGTH(i);
         init_triangle_circle(cur_vertices, radius, center_x[i], center_y[i]);

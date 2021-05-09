@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/noa/c-test/triangle_circle
+CMAKE_SOURCE_DIR = /home/noa/c-test/water-simulation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/noa/c-test/triangle_circle/build
+CMAKE_BINARY_DIR = /home/noa/c-test/water-simulation/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/tests.dir/depend.make
@@ -59,29 +59,29 @@ include CMakeFiles/tests.dir/flags.make
 
 CMakeFiles/tests.dir/tests/main.c.o: CMakeFiles/tests.dir/flags.make
 CMakeFiles/tests.dir/tests/main.c.o: ../tests/main.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noa/c-test/triangle_circle/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/tests.dir/tests/main.c.o"
-	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/tests.dir/tests/main.c.o   -c /home/noa/c-test/triangle_circle/tests/main.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noa/c-test/water-simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building C object CMakeFiles/tests.dir/tests/main.c.o"
+	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/tests.dir/tests/main.c.o   -c /home/noa/c-test/water-simulation/tests/main.c
 
 CMakeFiles/tests.dir/tests/main.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/tests.dir/tests/main.c.i"
-	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/noa/c-test/triangle_circle/tests/main.c > CMakeFiles/tests.dir/tests/main.c.i
+	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/noa/c-test/water-simulation/tests/main.c > CMakeFiles/tests.dir/tests/main.c.i
 
 CMakeFiles/tests.dir/tests/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/tests.dir/tests/main.c.s"
-	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/noa/c-test/triangle_circle/tests/main.c -o CMakeFiles/tests.dir/tests/main.c.s
+	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/noa/c-test/water-simulation/tests/main.c -o CMakeFiles/tests.dir/tests/main.c.s
 
 CMakeFiles/tests.dir/src/circle_creator.c.o: CMakeFiles/tests.dir/flags.make
 CMakeFiles/tests.dir/src/circle_creator.c.o: ../src/circle_creator.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noa/c-test/triangle_circle/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/tests.dir/src/circle_creator.c.o"
-	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/tests.dir/src/circle_creator.c.o   -c /home/noa/c-test/triangle_circle/src/circle_creator.c
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noa/c-test/water-simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/tests.dir/src/circle_creator.c.o"
+	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/tests.dir/src/circle_creator.c.o   -c /home/noa/c-test/water-simulation/src/circle_creator.c
 
 CMakeFiles/tests.dir/src/circle_creator.c.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/tests.dir/src/circle_creator.c.i"
-	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/noa/c-test/triangle_circle/src/circle_creator.c > CMakeFiles/tests.dir/src/circle_creator.c.i
+	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/noa/c-test/water-simulation/src/circle_creator.c > CMakeFiles/tests.dir/src/circle_creator.c.i
 
 CMakeFiles/tests.dir/src/circle_creator.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/tests.dir/src/circle_creator.c.s"
-	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/noa/c-test/triangle_circle/src/circle_creator.c -o CMakeFiles/tests.dir/src/circle_creator.c.s
+	/bin/x86_64-linux-gnu-gcc-9 $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/noa/c-test/water-simulation/src/circle_creator.c -o CMakeFiles/tests.dir/src/circle_creator.c.s
 
 # Object files for target tests
 tests_OBJECTS = \
@@ -95,7 +95,7 @@ tests: CMakeFiles/tests.dir/tests/main.c.o
 tests: CMakeFiles/tests.dir/src/circle_creator.c.o
 tests: CMakeFiles/tests.dir/build.make
 tests: CMakeFiles/tests.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/noa/c-test/triangle_circle/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C executable tests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/noa/c-test/water-simulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C executable tests"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/tests.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -108,6 +108,6 @@ CMakeFiles/tests.dir/clean:
 .PHONY : CMakeFiles/tests.dir/clean
 
 CMakeFiles/tests.dir/depend:
-	cd /home/noa/c-test/triangle_circle/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/noa/c-test/triangle_circle /home/noa/c-test/triangle_circle /home/noa/c-test/triangle_circle/build /home/noa/c-test/triangle_circle/build /home/noa/c-test/triangle_circle/build/CMakeFiles/tests.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/noa/c-test/water-simulation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/noa/c-test/water-simulation /home/noa/c-test/water-simulation /home/noa/c-test/water-simulation/build /home/noa/c-test/water-simulation/build /home/noa/c-test/water-simulation/build/CMakeFiles/tests.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/tests.dir/depend
 

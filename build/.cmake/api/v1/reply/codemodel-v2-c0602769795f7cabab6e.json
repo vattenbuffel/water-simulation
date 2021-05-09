@@ -66,8 +66,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/home/noa/c-test/triangle_circle/build",
-		"source" : "/home/noa/c-test/triangle_circle"
+		"build" : "/home/noa/c-test/water-simulation/build",
+		"source" : "/home/noa/c-test/water-simulation"
 	},
 	"version" : 
 	{
