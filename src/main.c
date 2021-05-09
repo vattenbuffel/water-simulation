@@ -1,4 +1,5 @@
 #include "../include/glad/glad.h"
+#include "obstacle_creator.h"
 #include "circle_creator.h"
 #include <GLFW/glfw3.h>
 #include <assert.h>
@@ -25,7 +26,10 @@
 #define SCR_HEIGHT 800
 
 // Radius of the water circles
-#define RADIUS (2*SCR_WIDTH / NX)
+#define RADIUS (2 * SCR_WIDTH / NX)
+
+// Side length of obstacle
+#define OBSTACLE_SIDE_LENGTH (2 * RADIUS)
 
 // Macro to calculate the index of state of position position x,y in the grid
 // array
@@ -51,7 +55,7 @@
 enum States {
     states_background,
     states_water,
-    // states_obstacle,
+    states_obstacle,
     states_max_val
 };
 
@@ -90,6 +94,22 @@ void circle_from_grid(int *grid, float *vertices, int n_circles) {
     }
 
     init_triangle_circles(vertices, RADIUS, center_x, center_y, n_circles);
+}
+
+void obstacles_from_grid(int *grid, float *vertices, int n_obstacles) {
+    int center_i = 0;
+    float center_x[n_obstacles];
+    float center_y[n_obstacles];
+    for (int i = 0; i < NX * NY; i++) {
+        int state = grid[i];
+        if (state == states_obstacle) {
+            center_x[center_i] = INDEX_TO_X(i);
+            center_y[center_i] = INDEX_TO_Y(i);
+            center_i++;
+        }
+    }
+
+    obstacles_init(vertices, OBSTACLE_SIDE_LENGTH, center_x, center_y, n_obstacles);
 }
 
 int main() {
@@ -163,8 +183,8 @@ int main() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    // Create the grid of the water dropplet positions
-    int n_circles = 0;
+    // Create the grid of the water dropplet and obstacle positions
+    int n_circles, n_obstacles = 0;
     static int new_grid[NY * NX];
     // static float old_grid[NY * NX * 3];
     for (int y = 0; y < NY; y++) {
@@ -175,20 +195,26 @@ int main() {
             // n_circles += 1;// state==states_water;
             new_grid[INDEX_OF_POS(x, y)] = state;
             n_circles += state == states_water;
+            n_obstacles += state == states_obstacle;
         }
     }
 
     // Create the indices array for the circles
     // static unsigned int indices[NX*NY];
-    unsigned int indices[CIRCLES_VERTICES_ARRAY_LENGTH(n_circles)];
-    connecting_vertices(indices, n_circles);
+    unsigned int circles_indices[CIRCLES_VERTICES_ARRAY_LENGTH(n_circles)];
+    circles_connecting_vertices(circles_indices, n_circles);
 
     // Create the arrays containing the pixel locations of the circle
-    static float triangle_circles[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
-    // float x_centers[] = {100, 700, 700, 100};
-    // float y_centers[] = {100, 100, 500, 500};
-    // init_triangle_circles(triangle_circles, RADIUS, x_centers, y_centers,
-    //                       n_circles);
+    static float circles_vertices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
+
+
+    // Create the indices array for the obstacles
+    // static unsigned int indices[NX*NY];
+    unsigned int obstacle_indices[OBSTACLES_VERTICES_ARRAY_LENGTH(n_obstacles)];
+    obstacles_connecting_vertices(obstacle_indices, n_obstacles);
+
+    // Create the arrays containing the pixel locations of the circle
+    static float circles_vertices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
 
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -199,11 +225,11 @@ int main() {
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_circles), triangle_circles,
+    glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices), circles_vertices,
                  GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(circles_indices), circles_indices,
                  GL_STATIC_DRAW);
 
     // Positions attribute
@@ -250,9 +276,9 @@ int main() {
         // fall(old_grid, new_grid);
 
         // Calculate the water droplets based on grid
-        circle_from_grid(new_grid, triangle_circles, n_circles);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(triangle_circles),
-                     triangle_circles, GL_DYNAMIC_DRAW);
+        circle_from_grid(new_grid, circles_vertices, n_circles);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices),
+                     circles_vertices, GL_DYNAMIC_DRAW);
 
         // input
         // -----

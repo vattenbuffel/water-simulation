@@ -11,3 +11,6 @@ CMakeFiles/main.dir/src/main.c.o
  /home/noa/c-test/water-simulation/include/glad/glad.h
  /home/noa/c-test/water-simulation/src/circle_creator.h
  /home/noa/c-test/water-simulation/src/main.c
+CMakeFiles/main.dir/src/obstacle_creator.c.o
+ /home/noa/c-test/water-simulation/src/obstacle_creator.c
+ /home/noa/c-test/water-simulation/src/obstacle_creator.h

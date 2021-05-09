@@ -1,4 +1,5 @@
 #include "../src/circle_creator.h"
+#include "../src/obstacle_creator.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -6,6 +7,7 @@
 
 #define NX 800
 #define NY 800
+
 
 void test_triangle_cirlce() {
     // See if the macros output the correct lengths
@@ -47,7 +49,7 @@ void test_triangle_cirlce() {
 
     // See if the indexes created are correct
     int indexes[CIRCLES_INDEX_ARRAY_LENGTH(2)];
-    connecting_vertices(indexes, 2);
+    circles_connecting_vertices(indexes, 2);
     assert(indexes[0] == 0);
     assert(indexes[1] == 1);
     assert(indexes[2] == 2);
@@ -64,8 +66,61 @@ void test_triangle_cirlce() {
     assert(indexes[CIRCLE_INDEX_ARRAY_LENGTH + 5] == N_TRIANGLES + 3);
 }
 
+void test_obstacle() {
+// See if the macros output the correct lengths
+    assert(OBSTACLE_VERTICES_ARRAY_LENGTH == 12);
+    assert(OBSTACLES_VERTICES_ARRAY_LENGTH(1) == 12);
+    assert(OBSTACLES_VERTICES_ARRAY_LENGTH(2) == 2 * 12);
+    assert(OBSTACLE_INDEX_ARRAY_LENGTH == 6);
+    assert(OBSTACLES_INDEX_ARRAY_LENGTH(1) == 6);
+    assert(OBSTACLES_INDEX_ARRAY_LENGTH(2) == 2 * 6);
+
+   
+    // See if the second x and y position are correct
+    float vertices[OBSTACLES_VERTICES_ARRAY_LENGTH(2)];
+    obstacle_init(vertices, 5, 1, 2);
+    assert(abs(vertices[3 + 0] - 5/sqrt(2) * cos(DEG_TO_RAD(135)) - 1) <
+           0.0001);
+    assert(abs(vertices[3 + 1] - 5/sqrt(2) * sin(DEG_TO_RAD(135)) - 2) <
+           0.0001);
+
+    // See if the second x and y positions of the second obstacle are correct
+    float center_x[2] = {0, 1};
+    float center_y[2] = {0, -2};
+    obstacles_init(vertices, 3, center_x, center_y, 2);
+    int idx = 3 + 0 + OBSTACLE_VERTICES_ARRAY_LENGTH;
+    assert(abs(vertices[3 + 0] - 3/sqrt(2) * cos(DEG_TO_RAD(135)) - 0) <
+           0.0001);
+    assert(abs(vertices[3 + 1] - 3/sqrt(2) * sin(DEG_TO_RAD(135)) + 0) <
+           0.0001);
+    assert(abs(vertices[3 + 0 + OBSTACLE_VERTICES_ARRAY_LENGTH] -
+               3/sqrt(2) * cos(DEG_TO_RAD(135)) - 1) < 0.0001);
+    assert(abs(vertices[3 + 1 + OBSTACLE_VERTICES_ARRAY_LENGTH] -
+               3/sqrt(2) * sin(DEG_TO_RAD(135)) + 2) < 0.0001);
+
+    // See if the indexes created are correct
+    int indexes[OBSTACLES_INDEX_ARRAY_LENGTH(2)];
+    obstacle_connecting_vertices(indexes, 2);
+    assert(indexes[0] == 0);
+    assert(indexes[1] == 2);
+    assert(indexes[2] == 1);
+    assert(indexes[3] == 0);
+    assert(indexes[4] == 2);
+    assert(indexes[5] == 3);
+    
+    assert(indexes[OBSTACLE_INDEX_ARRAY_LENGTH + 0] == 4 + 0);
+    assert(indexes[OBSTACLE_INDEX_ARRAY_LENGTH + 1] == 4 + 2);
+    assert(indexes[OBSTACLE_INDEX_ARRAY_LENGTH + 2] == 4 + 1);
+    assert(indexes[OBSTACLE_INDEX_ARRAY_LENGTH + 3] == 4 + 0);
+    assert(indexes[OBSTACLE_INDEX_ARRAY_LENGTH + 4] == 4 + 2);
+    assert(indexes[OBSTACLE_INDEX_ARRAY_LENGTH + 5] == 4 + 3);
+
+
+}
+
 int main(int argc) {
-    test_triangle_cirlce();
+    // test_triangle_cirlce(); // TODO: these tests need updating
+    test_obstacle();
     printf("Passed all tests!\n");
     return 0;
 }

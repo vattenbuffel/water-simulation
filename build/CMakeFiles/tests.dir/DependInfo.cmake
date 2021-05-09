@@ -5,6 +5,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
   "/home/noa/c-test/water-simulation/src/circle_creator.c" "/home/noa/c-test/water-simulation/build/CMakeFiles/tests.dir/src/circle_creator.c.o"
+  "/home/noa/c-test/water-simulation/src/obstacle_creator.c" "/home/noa/c-test/water-simulation/build/CMakeFiles/tests.dir/src/obstacle_creator.c.o"
   "/home/noa/c-test/water-simulation/tests/main.c" "/home/noa/c-test/water-simulation/build/CMakeFiles/tests.dir/tests/main.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")

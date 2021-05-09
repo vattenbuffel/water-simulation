@@ -236,6 +236,36 @@ src/main.c.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/main.c.s
 .PHONY : src/main.c.s
 
+src/obstacle_creator.o: src/obstacle_creator.c.o
+
+.PHONY : src/obstacle_creator.o
+
+# target to build an object file
+src/obstacle_creator.c.o:
+	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/src/obstacle_creator.c.o
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/obstacle_creator.c.o
+.PHONY : src/obstacle_creator.c.o
+
+src/obstacle_creator.i: src/obstacle_creator.c.i
+
+.PHONY : src/obstacle_creator.i
+
+# target to preprocess a source file
+src/obstacle_creator.c.i:
+	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/src/obstacle_creator.c.i
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/obstacle_creator.c.i
+.PHONY : src/obstacle_creator.c.i
+
+src/obstacle_creator.s: src/obstacle_creator.c.s
+
+.PHONY : src/obstacle_creator.s
+
+# target to generate assembly for a file
+src/obstacle_creator.c.s:
+	$(MAKE) -f CMakeFiles/tests.dir/build.make CMakeFiles/tests.dir/src/obstacle_creator.c.s
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/obstacle_creator.c.s
+.PHONY : src/obstacle_creator.c.s
+
 tests/main.o: tests/main.c.o
 
 .PHONY : tests/main.o
@@ -283,6 +313,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/obstacle_creator.o"
+	@echo "... src/obstacle_creator.i"
+	@echo "... src/obstacle_creator.s"
 	@echo "... tests/main.o"
 	@echo "... tests/main.i"
 	@echo "... tests/main.s"

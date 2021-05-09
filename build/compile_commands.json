@@ -11,6 +11,11 @@
 },
 {
   "directory": "/home/noa/c-test/water-simulation/build",
+  "command": "/bin/x86_64-linux-gnu-gcc-9   -g   -o CMakeFiles/tests.dir/src/obstacle_creator.c.o   -c /home/noa/c-test/water-simulation/src/obstacle_creator.c",
+  "file": "/home/noa/c-test/water-simulation/src/obstacle_creator.c"
+},
+{
+  "directory": "/home/noa/c-test/water-simulation/build",
   "command": "/bin/x86_64-linux-gnu-gcc-9   -g   -o CMakeFiles/main.dir/src/main.c.o   -c /home/noa/c-test/water-simulation/src/main.c",
   "file": "/home/noa/c-test/water-simulation/src/main.c"
 },
@@ -23,6 +28,11 @@
   "directory": "/home/noa/c-test/water-simulation/build",
   "command": "/bin/x86_64-linux-gnu-gcc-9   -g   -o CMakeFiles/main.dir/src/circle_creator.c.o   -c /home/noa/c-test/water-simulation/src/circle_creator.c",
   "file": "/home/noa/c-test/water-simulation/src/circle_creator.c"
+},
+{
+  "directory": "/home/noa/c-test/water-simulation/build",
+  "command": "/bin/x86_64-linux-gnu-gcc-9   -g   -o CMakeFiles/main.dir/src/obstacle_creator.c.o   -c /home/noa/c-test/water-simulation/src/obstacle_creator.c",
+  "file": "/home/noa/c-test/water-simulation/src/obstacle_creator.c"
 },
 {
   "directory": "/home/noa/c-test/water-simulation/build",

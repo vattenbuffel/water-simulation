@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "obstacle_creator.h": "c",
+        "random": "c",
+        "*.tcc": "c",
+        "string_view": "c",
+        "tuple": "c"
+    }
+}

@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/tests.dir/src/circle_creator.c.o"
+  "CMakeFiles/tests.dir/src/obstacle_creator.c.o"
   "CMakeFiles/tests.dir/tests/main.c.o"
   "tests"
   "tests.pdb"

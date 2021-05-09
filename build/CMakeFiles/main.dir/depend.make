@@ -11,3 +11,6 @@ CMakeFiles/main.dir/src/main.c.o: ../include/glad/glad.h
 CMakeFiles/main.dir/src/main.c.o: ../src/circle_creator.h
 CMakeFiles/main.dir/src/main.c.o: ../src/main.c
 
+CMakeFiles/main.dir/src/obstacle_creator.c.o: ../src/obstacle_creator.c
+CMakeFiles/main.dir/src/obstacle_creator.c.o: ../src/obstacle_creator.h
+

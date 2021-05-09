@@ -2,15 +2,15 @@
 #include <math.h>
 
 //======================================//
-// Global function declarations
-//======================================//
-
-//======================================//
 // Local function declarations
 //======================================//
 
 //======================================//
-// Global function declarations
+// Local function implementation
+//======================================//
+
+//======================================//
+// Global function implementation
 //======================================//
 
 void init_triangle_circle(float *vertices, float radius, float center_x,
@@ -39,7 +39,7 @@ void init_triangle_circles(float *vertices, float radius, float *center_x,
     }
 }
 
-void connecting_vertices(int *connections, int n_triangles) {
+void circles_connecting_vertices(int *connections, int n_triangles) {
     for (int i = 0; i < n_triangles; i++) {
         for (int j = 0; j < N_TRIANGLES; j++) {
             int base_index = i * CIRCLE_INDEX_ARRAY_LENGTH + j * 3;
