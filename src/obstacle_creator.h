@@ -4,6 +4,7 @@
 //======================================//
 // Defines
 //======================================//
+
 // How long an array must be to contain the vertices of 1 obstacle
 #define OBSTACLE_VERTICES_ARRAY_LENGTH 12
 
@@ -50,6 +51,6 @@ void obstacles_init(float *vertices, float side_length, float *center_x,
  * @param connections
  * @param n_triangles
  */
-void obstacle_connecting_vertices(int *connections, int n_triangles);
+void obstacles_connecting_vertices(int *connections, int n_triangles);
 
 #endif /*OBSTACLE_CREATOR_H*/

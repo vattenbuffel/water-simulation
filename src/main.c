@@ -1,6 +1,6 @@
 #include "../include/glad/glad.h"
-#include "obstacle_creator.h"
 #include "circle_creator.h"
+#include "obstacle_creator.h"
 #include <GLFW/glfw3.h>
 #include <assert.h>
 #include <math.h>
@@ -13,7 +13,6 @@
 /* TODO:
  *   Implementera automata för simulation av vattnets rörelser
  *   Måla in vatten och hinder med musen
- *   Implementera hinder
  *   Kunna måla vatten respektive hinder
  *   Massively speed up calculating the positions of water
  *
@@ -26,7 +25,8 @@
 #define SCR_HEIGHT 800
 
 // Radius of the water circles
-#define RADIUS (2 * SCR_WIDTH / NX)
+// #define RADIUS (2 * SCR_WIDTH / NX)
+#define RADIUS (1 * SCR_WIDTH / NX)
 
 // Side length of obstacle
 #define OBSTACLE_SIDE_LENGTH (2 * RADIUS)
@@ -72,12 +72,20 @@ const char *vertexShaderSource = "#version 330 core\n"
                                  "   gl_Position = vec4(x, y, aPos.z, 1.0);\n"
                                  "}\0";
 
-const char *fragmentShaderSource =
+const char *fragmentShaderSourceCircles =
     "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
     "   FragColor = vec4(0.0f, 0.5f, 0.8f, 0.3f);\n"
+    "}\n\0";
+
+const char *fragmentShaderSourceObstacles =
+    "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(0.0f, 0.0f, 0.0f, 0.3f);\n"
     "}\n\0";
 
 void circle_from_grid(int *grid, float *vertices, int n_circles) {
@@ -109,7 +117,8 @@ void obstacles_from_grid(int *grid, float *vertices, int n_obstacles) {
         }
     }
 
-    obstacles_init(vertices, OBSTACLE_SIDE_LENGTH, center_x, center_y, n_obstacles);
+    obstacles_init(vertices, OBSTACLE_SIDE_LENGTH, center_x, center_y,
+                   n_obstacles);
 }
 
 int main() {
@@ -158,41 +167,62 @@ int main() {
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED: %s\n", infoLog);
     }
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    // glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+    // fragment shader circle
+    unsigned int fragmentShaderCircles = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShaderCircles, 1, &fragmentShaderSourceCircles, NULL);
+    glCompileShader(fragmentShaderCircles);
     // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(fragmentShaderCircles, GL_COMPILE_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+        glGetShaderInfoLog(fragmentShaderCircles, 512, NULL, infoLog);
         printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: %s\n", infoLog);
     }
-    // link shaders
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    // link shaders circle
+    unsigned int shaderProgramCircles = glCreateProgram();
+    glAttachShader(shaderProgramCircles, vertexShader);
+    glAttachShader(shaderProgramCircles, fragmentShaderCircles);
+    glLinkProgram(shaderProgramCircles);
     // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    glGetProgramiv(shaderProgramCircles, GL_LINK_STATUS, &success);
     if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        glGetProgramInfoLog(shaderProgramCircles, 512, NULL, infoLog);
         printf("ERROR::SHADER::PROGRAM::LINKING::FAILED: %s\n", infoLog);
     }
+    glDeleteShader(fragmentShaderCircles);
+
+
+    // fragment shader obstacles
+    unsigned int fragmentShaderObstacles = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShaderObstacles, 1, &fragmentShaderSourceObstacles, NULL);
+    glCompileShader(fragmentShaderObstacles);
+    // check for shader compile errors
+    glGetShaderiv(fragmentShaderObstacles, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShaderObstacles, 512, NULL, infoLog);
+        printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: %s\n", infoLog);
+    }
+    // link shaders circle
+    unsigned int shaderProgramObstacles = glCreateProgram();
+    glAttachShader(shaderProgramObstacles, vertexShader);
+    glAttachShader(shaderProgramObstacles, fragmentShaderObstacles);
+    glLinkProgram(shaderProgramObstacles);
+    // check for linking errors
+    glGetProgramiv(shaderProgramObstacles, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(shaderProgramObstacles, 512, NULL, infoLog);
+        printf("ERROR::SHADER::PROGRAM::LINKING::FAILED: %s\n", infoLog);
+    }
+    glDeleteShader(fragmentShaderObstacles);
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
 
     // Create the grid of the water dropplet and obstacle positions
     int n_circles, n_obstacles = 0;
-    static int new_grid[NY * NX];
+    static int new_grid[NY * NX] = {0};
     // static float old_grid[NY * NX * 3];
     for (int y = 0; y < NY; y++) {
         for (int x = 0; x < NX; x++) {
             float state = (float)(rand() % states_max_val);
             assert(state < states_max_val && state >= 0);
-            // new_grid[INDEX_OF_POS(x, y)] = states_water; // state;
-            // n_circles += 1;// state==states_water;
             new_grid[INDEX_OF_POS(x, y)] = state;
             n_circles += state == states_water;
             n_obstacles += state == states_obstacle;
@@ -204,35 +234,53 @@ int main() {
     unsigned int circles_indices[CIRCLES_VERTICES_ARRAY_LENGTH(n_circles)];
     circles_connecting_vertices(circles_indices, n_circles);
 
-    // Create the arrays containing the pixel locations of the circle
+    // Create the arrays containing the pixel locations of the circles
     static float circles_vertices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
-
 
     // Create the indices array for the obstacles
     // static unsigned int indices[NX*NY];
-    unsigned int obstacle_indices[OBSTACLES_VERTICES_ARRAY_LENGTH(n_obstacles)];
-    obstacles_connecting_vertices(obstacle_indices, n_obstacles);
+    unsigned int
+        obstacles_indices[OBSTACLES_INDEX_ARRAY_LENGTH(n_obstacles)];
+    obstacles_connecting_vertices(obstacles_indices, n_obstacles);
 
-    // Create the arrays containing the pixel locations of the circle
-    static float circles_vertices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
+    // Create the arrays containing the pixel locations of the obstacles
+    static float obstacles_vertices[OBSTACLES_VERTICES_ARRAY_LENGTH(NX * NY)];
 
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    unsigned int circles_VBO, circles_VAO, circles_EBO, obstacles_VBO,
+        obstacles_VAO, obstacles_EBO;
+    glGenVertexArrays(1, &circles_VAO);
+    glGenBuffers(1, &circles_VBO);
+    glGenBuffers(1, &circles_EBO);
+    glGenVertexArrays(1, &obstacles_VAO);
+    glGenBuffers(1, &obstacles_VBO);
+    glGenBuffers(1, &obstacles_EBO);
     // bind the Vertex Array Object first, then bind and set vertex buffer(s),
     // and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
+    glBindVertexArray(circles_VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, circles_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices), circles_vertices,
                  GL_DYNAMIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(circles_indices), circles_indices,
-                 GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, circles_EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(circles_indices),
+                 circles_indices, GL_STATIC_DRAW);
 
     // Positions attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                          (void *)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(obstacles_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, obstacles_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(obstacles_vertices),
+                 obstacles_vertices, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, obstacles_EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(obstacles_indices),
+                 obstacles_indices, GL_STATIC_DRAW);
+
+    // // Positions attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                           (void *)0);
     glEnableVertexAttribArray(0);
@@ -243,15 +291,14 @@ int main() {
     // glEnableVertexAttribArray(1);
 
     // note that this is allowed, the call to glVertexAttribPointer registered
-    // VBO as the vertex attribute's bound vertex buffer object so afterwards we
-    // can safely unbind
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // circles_VBO as the vertex attribute's bound vertex buffer object so
+    // afterwards we can safely unbind glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally
-    // modify this VAO, but this rarely happens. Modifying other VAOs requires a
-    // call to glBindVertexArray aNYways so we generally don't unbind VAOs (nor
-    // VBOs) when it's not directly necessary.
-    // glBindVertexArray(0);
+    // You can unbind the circles_VAO afterwards so other circles_VAO calls
+    // won't accidentally modify this circles_VAO, but this rarely happens.
+    // Modifying other circles_VAOs requires a call to glBindVertexArray aNYways
+    // so we generally don't unbind circles_VAOs (nor circles_VBOs) when it's
+    // not directly necessary. glBindVertexArray(0);
 
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -275,10 +322,9 @@ int main() {
         // memcpy(old_grid, new_grid, sizeof(new_grid));
         // fall(old_grid, new_grid);
 
-        // Calculate the water droplets based on grid
+        // Calculate the water droplets and obstacles based on grid
         circle_from_grid(new_grid, circles_vertices, n_circles);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices),
-                     circles_vertices, GL_DYNAMIC_DRAW);
+        obstacles_from_grid(new_grid, obstacles_vertices, n_obstacles);
 
         // input
         // -----
@@ -291,14 +337,24 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         // glPointSize(10);
-        glUseProgram(shaderProgram);
 
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's
-                                // no need to bind it every time, but we'll do
-                                // so to keep things a bit more organized
+        // Draw circles
+        glUseProgram(shaderProgramCircles);
+        glBindVertexArray(circles_VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, circles_VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices),
+                     circles_vertices, GL_DYNAMIC_DRAW);
         glDrawElements(GL_TRIANGLES, CIRCLES_INDEX_ARRAY_LENGTH(n_circles),
                        GL_UNSIGNED_INT, 0);
-        // glBindVertexArray(0); // no need to unbind it every time
+
+        // Draw obstacles
+        glUseProgram(shaderProgramObstacles);
+        glBindVertexArray(obstacles_VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, obstacles_VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(obstacles_vertices),
+                     obstacles_vertices, GL_DYNAMIC_DRAW);
+        glDrawElements(GL_TRIANGLES, OBSTACLES_INDEX_ARRAY_LENGTH(n_obstacles),
+                       GL_UNSIGNED_INT, 0);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse
         // moved etc.)
@@ -309,9 +365,10 @@ int main() {
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
+    glDeleteVertexArrays(1, &circles_VAO);
+    glDeleteBuffers(1, &circles_VBO);
+    glDeleteProgram(shaderProgramCircles);
+    glDeleteProgram(shaderProgramObstacles);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------

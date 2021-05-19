@@ -100,7 +100,7 @@ void test_obstacle() {
 
     // See if the indexes created are correct
     int indexes[OBSTACLES_INDEX_ARRAY_LENGTH(2)];
-    obstacle_connecting_vertices(indexes, 2);
+    obstacles_connecting_vertices(indexes, 2);
     assert(indexes[0] == 0);
     assert(indexes[1] == 2);
     assert(indexes[2] == 1);
