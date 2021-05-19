@@ -52,6 +52,6 @@ void init_triangle_circles(float* vertices, float radius, float *center_x, float
  * @param connections 
  * @param n_triangles 
  */
-void circles_connecting_vertices(int* connections, int n_triangles);
+void circles_connecting_vertices(unsigned int* connections, int n_triangles);
 
 #endif /*CIRCLE_CREATOR_H*/

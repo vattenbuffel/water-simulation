@@ -12,14 +12,13 @@
 
 /* TODO:
  *   Implementera automata för simulation av vattnets rörelser
- *   Måla in vatten och hinder med musen
- *   Kunna måla vatten respektive hinder
+ *   Figure out why there is an index error when drawing with mouse
  *   Massively speed up calculating the positions of water
  *
  */
 
-#define NX 100
-#define NY 100
+#define NX 10
+#define NY 10
 
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 800
@@ -31,8 +30,7 @@
 // Side length of obstacle
 #define OBSTACLE_SIDE_LENGTH (2 * RADIUS)
 
-// Macro to calculate the index of state of position position x,y in the grid
-// array
+// Macro to calculate the index of position x,y in the grid
 #define INDEX_OF_POS(x, y) (y * NX + x)
 
 // Macro to go from index in grid to col
@@ -43,6 +41,7 @@
 
 // Macro to calculate the x pixel value of col x in grid
 #define COL_TO_PIXEL_X(x) (x * (float)SCR_WIDTH / NX)
+
 // Macro to calculate the y pixel value of row y in grid
 #define ROW_TO_PIXEL_Y(y) (y * (float)SCR_HEIGHT / NY)
 
@@ -52,6 +51,18 @@
 // Macro to go from index in grid to y pixel
 #define INDEX_TO_Y(i) (ROW_TO_PIXEL_Y(INDEX_TO_ROW(i)))
 
+// Macro to go from pixel x to grid x. It should probably round instead of
+// casting to int
+#define PIXEL_X_TO_GRID_X(x) ((int)((x) * (float)NX / SCR_WIDTH))
+
+// Macro to go from pixel y to grid y. It should probably round instead of
+// casting to int
+#define PIXEL_Y_TO_GRID_Y(y) ((int)((y) * (float)NY / SCR_HEIGHT))
+
+// Macro to convert from GLFW's whacky coordinate frame to grid index
+#define GLFW_POS_TO_GRID_INDEX(x, y)                                           \
+    ((int)INDEX_OF_POS(PIXEL_X_TO_GRID_X(x), PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - y)))
+
 enum States {
     states_background,
     states_water,
@@ -60,8 +71,43 @@ enum States {
 };
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+
+/**
+ * @brief Changes the mouse state to be either GLFW_PRESS or GLFW_RELEASE
+ *
+ * @param window
+ * @param button
+ * @param action
+ * @param mods
+ */
+void mouse_button_callback(GLFWwindow *window, int button, int action,
+                           int mods);
+
+/**
+ * @brief Whenever the mouse is moved. Used for placing or removing obstacles
+ *
+ * @param window
+ * @param xpos
+ * @param ypos
+ */
+void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
+
 void processInput(GLFWwindow *window);
+void add_water_to_grid(int x, int y);
+void remove_water_to_grid(int x, int y);
+void add_obstacle_to_grid(int x, int y);
+void remove_obstacle_to_grid(int x, int y);
+void modify_grid(int x, int y, int resulting_state);
 void fall(float *all_pixels, float *updated_pixels);
+
+// state of mouse. either pressed or not pressed
+int mouse_state = GLFW_RELEASE;
+// State of keyboard. Either of the enum states
+int keyboard_state = states_background;
+
+// These store the states of the board
+static int new_grid[NY * NX] = {0};
+// static float old_grid[NY * NX * 3];
 
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec3 aPos;\n"
@@ -145,6 +191,8 @@ int main() {
     glfwMakeContextCurrent(window);
     // glfwSwapInterval(0); // SUUUUUPER FAST
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -169,7 +217,8 @@ int main() {
     }
     // fragment shader circle
     unsigned int fragmentShaderCircles = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShaderCircles, 1, &fragmentShaderSourceCircles, NULL);
+    glShaderSource(fragmentShaderCircles, 1, &fragmentShaderSourceCircles,
+                   NULL);
     glCompileShader(fragmentShaderCircles);
     // check for shader compile errors
     glGetShaderiv(fragmentShaderCircles, GL_COMPILE_STATUS, &success);
@@ -190,10 +239,10 @@ int main() {
     }
     glDeleteShader(fragmentShaderCircles);
 
-
     // fragment shader obstacles
     unsigned int fragmentShaderObstacles = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShaderObstacles, 1, &fragmentShaderSourceObstacles, NULL);
+    glShaderSource(fragmentShaderObstacles, 1, &fragmentShaderSourceObstacles,
+                   NULL);
     glCompileShader(fragmentShaderObstacles);
     // check for shader compile errors
     glGetShaderiv(fragmentShaderObstacles, GL_COMPILE_STATUS, &success);
@@ -217,8 +266,6 @@ int main() {
 
     // Create the grid of the water dropplet and obstacle positions
     int n_circles, n_obstacles = 0;
-    static int new_grid[NY * NX] = {0};
-    // static float old_grid[NY * NX * 3];
     for (int y = 0; y < NY; y++) {
         for (int x = 0; x < NX; x++) {
             float state = (float)(rand() % states_max_val);
@@ -239,8 +286,7 @@ int main() {
 
     // Create the indices array for the obstacles
     // static unsigned int indices[NX*NY];
-    unsigned int
-        obstacles_indices[OBSTACLES_INDEX_ARRAY_LENGTH(n_obstacles)];
+    unsigned int obstacles_indices[OBSTACLES_INDEX_ARRAY_LENGTH(n_obstacles)];
     obstacles_connecting_vertices(obstacles_indices, n_obstacles);
 
     // Create the arrays containing the pixel locations of the obstacles
@@ -382,6 +428,18 @@ int main() {
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    else if (glfwGetKey(window, GLFW_KEY_1)) {
+        printf("Switching to keyboard state water\n");
+        keyboard_state = states_water;
+    } else if (glfwGetKey(window, GLFW_KEY_2)) {
+        printf("Switching to keyboard state obstacle\n");
+        keyboard_state = states_obstacle;
+    } else if (glfwGetKey(window, GLFW_KEY_3)) {
+        printf("Switching to keyboard state background\n");
+        keyboard_state = states_background;
+    }
+    // else
+    //     printf("Unhandled keystroke!\n");
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback
@@ -392,6 +450,40 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // and height will be significantly larger than specified on retina
     // displays.
     glViewport(0, 0, width, height);
+}
+void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
+    // printf("Mouse at x: %f and y: %f\n", xpos, ypos);
+    // printf("Mouse at grid index: %d\n", GLFW_POS_TO_GRID_INDEX(xpos, ypos));
+    int grid_x = PIXEL_X_TO_GRID_X(xpos);
+    int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos);
+    assert(grid_x <= NX-1);
+    assert(grid_y <= NY-1);
+    printf("pixel x to grid x: %d, pixel y to grid y: %d, grid index: %d\n",
+    grid_x, grid_y, INDEX_OF_POS(grid_x, grid_y));
+    // printf("\n");
+
+    // If the mouse is pressed then an object should be either drawn or removed
+    if (mouse_state == GLFW_PRESS) {
+        // What to draw is basd on keyboard state
+        int grid_x = PIXEL_X_TO_GRID_X(xpos);
+        int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos);
+        modify_grid(grid_x, grid_y, keyboard_state);
+    }
+}
+
+void mouse_button_callback(GLFWwindow *window, int button, int action,
+                           int mods) {
+    mouse_state = action;
+
+    // This code prints what key is pressed or released
+    // char* button_action = action == GLFW_RELEASE ? "released" : "pressed";
+    // if(button == GLFW_MOUSE_BUTTON_LEFT)
+    //     printf("Left mouse button was %s!\n", button_action);
+    // else if (button == GLFW_MOUSE_BUTTON_RIGHT)
+    //     printf("Left mouse button was %s!\n", button_action);
+    // else
+    //     printf("Unhandled button with id %d was %s\n", action,
+    //     button_action);
 }
 
 void fall(float *old_grid, float *new_grid) {
@@ -410,4 +502,14 @@ void fall(float *old_grid, float *new_grid) {
         if (state == states_water)
             new_grid[(NY - 1) * NX * 3 + x * 3 + 2] = states_background;
     }
+}
+
+void add_water_to_grid(int x, int y);
+void remove_water_to_grid(int x, int y);
+void add_obstacle_to_grid(int x, int y);
+void remove_obstacle_to_grid(int x, int y);
+
+void modify_grid(int x, int y, int resulting_state) {
+    // printf("Gonna modify grid!\n");
+    new_grid[INDEX_OF_POS(x,y)] = resulting_state;
 }

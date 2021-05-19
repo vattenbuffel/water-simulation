@@ -37,7 +37,7 @@ void obstacles_init(float *vertices, float side_length, float *center_x,
     }
 }
 
-void obstacles_connecting_vertices(int *connections, int n_obstacles) {
+void obstacles_connecting_vertices(unsigned int *connections, int n_obstacles) {
     for (int i = 0; i < n_obstacles; i++) {
         int top_right_corner = 4 * i;
         int bottom_left_corner = top_right_corner + 2;
