@@ -80,6 +80,13 @@ void board_init(Board *board);
 /**
  * @brief 
  * 
+ * @param board 
+ */
+void board_restart(Board *board);
+
+/**
+ * @brief 
+ * 
  * @param grid 
  * @param vertices 
  * @param n_circles 

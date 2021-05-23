@@ -11,7 +11,7 @@ add_library(
     src/glad.c
     )
 
-add_executable(main src/main.c src/glad.c src/circle_creator.c src/obstacle_creator.c src/board.c src/assert_.c) 
+add_executable(main src/main.c src/glad.c src/circle_creator.c src/obstacle_creator.c src/board.c src/assert_.c src/keyboard.c) 
 
 ###########################
 # Big question as to why this doesn't work

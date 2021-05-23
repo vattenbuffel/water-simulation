@@ -3,6 +3,7 @@
 #include "board.h"
 #include "circle_creator.h"
 #include "constants.h"
+#include "keyboard.h"
 #include "obstacle_creator.h"
 #include <GLFW/glfw3.h>
 #include <math.h>
@@ -46,8 +47,8 @@ void fall(float *all_pixels, float *updated_pixels);
 
 // state of mouse. either pressed or not pressed
 int mouse_state = GLFW_RELEASE;
-// State of keyboard. Either of the enum states
-int keyboard_state = states_background;
+// State of keyboard.
+Keyboard keyboard;
 
 // Board state
 static Board board;
@@ -80,6 +81,8 @@ const char *fragmentShaderSourceObstacles =
 int main() {
     // Init the board
     board_init(&board);
+    // Init keyboard
+    keyboard_init(&keyboard);
 
     srand(time(NULL)); // Initialization, should only be called once.
     // glfw: initialize and configure
@@ -336,15 +339,33 @@ void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     else if (glfwGetKey(window, GLFW_KEY_1)) {
-        printf("Switching to keyboard state water\n");
-        keyboard_state = states_water;
+        // printf("Switching to keyboard state water\n");
+        keyboard.state = states_water;
+        keyboard.restart = false; // Restarts should be abolished if anything
+                                  // but ENTER is pressed after R
     } else if (glfwGetKey(window, GLFW_KEY_2)) {
-        printf("Switching to keyboard state obstacle\n");
-        keyboard_state = states_obstacle;
+        // printf("Switching to keyboard state obstacle\n");
+        keyboard.state = states_obstacle;
+        keyboard.restart = false;
     } else if (glfwGetKey(window, GLFW_KEY_3)) {
-        printf("Switching to keyboard state background\n");
-        keyboard_state = states_background;
+        // printf("Switching to keyboard state background\n");
+        keyboard.state = states_background;
+        keyboard.restart = false;
+    } else if (glfwGetKey(window, GLFW_KEY_R)) {
+        printf("Restart initialized.\nPress ENTER to restart board.\n");
+        keyboard.restart = true;
+    } else if (glfwGetKey(window, GLFW_KEY_ENTER)) {
+        if (keyboard.restart) {
+            printf("Going to restart board\n");
+            board_restart(&board);
+        }
+        keyboard.restart = false;
+    } else if (glfwGetKey(window, GLFW_KEY_A)) {
+        printf("Simulation should start\n");
+    } else if (glfwGetKey(window, GLFW_KEY_D)) {
+        printf("Simulation should stop\n");
     }
+
     // else
     //     printf("Unhandled keystroke!\n");
 }
@@ -384,7 +405,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
         // What to draw is basd on keyboard state
         int grid_x = PIXEL_X_TO_GRID_X(xpos - 1);
         int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos - 1);
-        board_modify_grid(&board, grid_x, grid_y, keyboard_state);
+        board_modify_grid(&board, grid_x, grid_y, keyboard.state);
     }
 }
 
@@ -420,4 +441,3 @@ void fall(float *old_grid, float *new_grid) {
             new_grid[(NY - 1) * NX * 3 + x * 3 + 2] = states_background;
     }
 }
-

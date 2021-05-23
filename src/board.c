@@ -57,6 +57,10 @@ void board_init(Board *board) {
     }
 }
 
+void board_restart(Board *board){
+    board_init(board);
+}
+
 void board_circle_from_grid(int *grid, float *vertices, int n_circles) {
     // printf("In circle_from_grid n_circles: %d\n", n_circles);
     // Idiot check to make sure that the number of circles is at least within
