@@ -53,15 +53,15 @@
 
 // Macro to go from pixel x to grid x. It should probably round instead of
 // casting to int
-#define PIXEL_X_TO_GRID_X(x) ((int)((x) * (float)NX / SCR_WIDTH))
+#define PIXEL_X_TO_GRID_X(x) (round((x) * (float)NX / SCR_WIDTH))
 
 // Macro to go from pixel y to grid y. It should probably round instead of
 // casting to int
-#define PIXEL_Y_TO_GRID_Y(y) ((int)((y) * (float)NY / SCR_HEIGHT))
+#define PIXEL_Y_TO_GRID_Y(y) (round((y) * (float)NY / SCR_HEIGHT))
 
 // Macro to convert from GLFW's whacky coordinate frame to grid index
 #define GLFW_POS_TO_GRID_INDEX(x, y)                                           \
-    ((int)INDEX_OF_POS(PIXEL_X_TO_GRID_X(x), PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - y)))
+    (INDEX_OF_POS(PIXEL_X_TO_GRID_X(x), PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - y)))
 
 enum States {
     states_background,
@@ -454,12 +454,12 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     // printf("Mouse at x: %f and y: %f\n", xpos, ypos);
     // printf("Mouse at grid index: %d\n", GLFW_POS_TO_GRID_INDEX(xpos, ypos));
-    int grid_x = PIXEL_X_TO_GRID_X(xpos);
-    int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos);
-    assert(grid_x <= NX-1);
-    assert(grid_y <= NY-1);
+    int grid_x = PIXEL_X_TO_GRID_X(xpos-1);
+    int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos-1);
     printf("pixel x to grid x: %d, pixel y to grid y: %d, grid index: %d\n",
     grid_x, grid_y, INDEX_OF_POS(grid_x, grid_y));
+    assert(grid_x <= NX-1);
+    assert(grid_y <= NY-1);
     // printf("\n");
 
     // If the mouse is pressed then an object should be either drawn or removed
