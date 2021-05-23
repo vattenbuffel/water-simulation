@@ -4,6 +4,10 @@
         "random": "c",
         "*.tcc": "c",
         "string_view": "c",
-        "tuple": "c"
+        "tuple": "c",
+        "circle_creator.h": "c",
+        "stdbool.h": "c",
+        "constants.h": "c",
+        "glad.h": "c"
     }
 }

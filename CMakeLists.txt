@@ -11,8 +11,7 @@ add_library(
     src/glad.c
     )
 
-
-add_executable(main src/main.c src/glad.c src/circle_creator.c src/obstacle_creator.c) 
+add_executable(main src/main.c src/glad.c src/circle_creator.c src/obstacle_creator.c src/board.c src/assert_.c) 
 
 ###########################
 # Big question as to why this doesn't work
@@ -36,8 +35,7 @@ target_link_libraries(main -ldl)
 target_link_libraries(main -lm)  
 
 
-add_executable(tests tests/main.c src/circle_creator.c src/obstacle_creator.c) 
-target_link_libraries(tests -lm)  
+
 
 
 

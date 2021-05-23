@@ -1,8 +1,10 @@
 #include "../include/glad/glad.h"
+#include "assert_.h"
+#include "board.h"
 #include "circle_creator.h"
+#include "constants.h"
 #include "obstacle_creator.h"
 #include <GLFW/glfw3.h>
-#include <assert.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -12,63 +14,9 @@
 
 /* TODO:
  *   Implementera automata för simulation av vattnets rörelser
- *   Figure out why there is an index error when drawing with mouse
  *   Massively speed up calculating the positions of water
  *
  */
-
-#define NX 10
-#define NY 10
-
-#define SCR_WIDTH 800
-#define SCR_HEIGHT 800
-
-// Radius of the water circles
-// #define RADIUS (2 * SCR_WIDTH / NX)
-#define RADIUS (1 * SCR_WIDTH / NX)
-
-// Side length of obstacle
-#define OBSTACLE_SIDE_LENGTH (2 * RADIUS)
-
-// Macro to calculate the index of position x,y in the grid
-#define INDEX_OF_POS(x, y) (y * NX + x)
-
-// Macro to go from index in grid to col
-#define INDEX_TO_COL(i) (i % NX)
-
-// Macro to go from index in grid to row
-#define INDEX_TO_ROW(i) ((int)i / NX)
-
-// Macro to calculate the x pixel value of col x in grid
-#define COL_TO_PIXEL_X(x) (x * (float)SCR_WIDTH / NX)
-
-// Macro to calculate the y pixel value of row y in grid
-#define ROW_TO_PIXEL_Y(y) (y * (float)SCR_HEIGHT / NY)
-
-// Macro to go from index in grid to x pixel
-#define INDEX_TO_X(i) (COL_TO_PIXEL_X(INDEX_TO_COL(i)))
-
-// Macro to go from index in grid to y pixel
-#define INDEX_TO_Y(i) (ROW_TO_PIXEL_Y(INDEX_TO_ROW(i)))
-
-// Macro to go from pixel x to grid x. It should probably round instead of
-// casting to int
-#define PIXEL_X_TO_GRID_X(x) (round((x) * (float)NX / SCR_WIDTH))
-
-// Macro to go from pixel y to grid y. It should probably round instead of
-// casting to int
-#define PIXEL_Y_TO_GRID_Y(y) (round((y) * (float)NY / SCR_HEIGHT))
-
-// Macro to convert from GLFW's whacky coordinate frame to grid index
-#define GLFW_POS_TO_GRID_INDEX(x, y)                                           \
-    (INDEX_OF_POS(PIXEL_X_TO_GRID_X(x), PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - y)))
-
-enum States {
-    states_background,
-    states_water,
-    states_obstacle,
-    states_max_val
-};
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -105,9 +53,8 @@ int mouse_state = GLFW_RELEASE;
 // State of keyboard. Either of the enum states
 int keyboard_state = states_background;
 
-// These store the states of the board
-static int new_grid[NY * NX] = {0};
-// static float old_grid[NY * NX * 3];
+// Board state
+static Board board;
 
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec3 aPos;\n"
@@ -134,40 +81,10 @@ const char *fragmentShaderSourceObstacles =
     "   FragColor = vec4(0.0f, 0.0f, 0.0f, 0.3f);\n"
     "}\n\0";
 
-void circle_from_grid(int *grid, float *vertices, int n_circles) {
-    int center_i = 0;
-    float center_x[n_circles];
-    float center_y[n_circles];
-    for (int i = 0; i < NX * NY; i++) {
-        int state = grid[i];
-        if (state == states_water) {
-            center_x[center_i] = INDEX_TO_X(i);
-            center_y[center_i] = INDEX_TO_Y(i);
-            center_i++;
-        }
-    }
-
-    init_triangle_circles(vertices, RADIUS, center_x, center_y, n_circles);
-}
-
-void obstacles_from_grid(int *grid, float *vertices, int n_obstacles) {
-    int center_i = 0;
-    float center_x[n_obstacles];
-    float center_y[n_obstacles];
-    for (int i = 0; i < NX * NY; i++) {
-        int state = grid[i];
-        if (state == states_obstacle) {
-            center_x[center_i] = INDEX_TO_X(i);
-            center_y[center_i] = INDEX_TO_Y(i);
-            center_i++;
-        }
-    }
-
-    obstacles_init(vertices, OBSTACLE_SIDE_LENGTH, center_x, center_y,
-                   n_obstacles);
-}
-
 int main() {
+    // Init the board
+    board_init(&board);
+
     srand(time(NULL)); // Initialization, should only be called once.
     // glfw: initialize and configure
     // ------------------------------
@@ -265,29 +182,27 @@ int main() {
     glDeleteShader(vertexShader);
 
     // Create the grid of the water dropplet and obstacle positions
-    int n_circles, n_obstacles = 0;
-    for (int y = 0; y < NY; y++) {
-        for (int x = 0; x < NX; x++) {
-            float state = (float)(rand() % states_max_val);
-            assert(state < states_max_val && state >= 0);
-            new_grid[INDEX_OF_POS(x, y)] = state;
-            n_circles += state == states_water;
-            n_obstacles += state == states_obstacle;
-        }
-    }
+    // for (int y = 0; y < NY; y++) {
+    //     for (int x = 0; x < NX; x++) {
+    //         float state = (float)(rand() % states_max_val);
+    //         assert_(state < states_max_val && state >= 0,
+    //                 "State value must be between states_max_cal and 0.");
+    //         state = states_water; // TEMP
+    //         board.new_grid[INDEX_OF_POS(x, y)] = state;
+    //         board_inc_counter(&board, state);
+    //     }
+    // }
 
     // Create the indices array for the circles
-    // static unsigned int indices[NX*NY];
-    unsigned int circles_indices[CIRCLES_VERTICES_ARRAY_LENGTH(n_circles)];
-    circles_connecting_vertices(circles_indices, n_circles);
+    unsigned int circles_indices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
+    circles_connecting_vertices(circles_indices, NX * NY);
 
     // Create the arrays containing the pixel locations of the circles
     static float circles_vertices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
 
     // Create the indices array for the obstacles
-    // static unsigned int indices[NX*NY];
-    unsigned int obstacles_indices[OBSTACLES_INDEX_ARRAY_LENGTH(n_obstacles)];
-    obstacles_connecting_vertices(obstacles_indices, n_obstacles);
+    unsigned int obstacles_indices[OBSTACLES_INDEX_ARRAY_LENGTH(NX * NY)];
+    obstacles_connecting_vertices(obstacles_indices, NX * NY);
 
     // Create the arrays containing the pixel locations of the obstacles
     static float obstacles_vertices[OBSTACLES_VERTICES_ARRAY_LENGTH(NX * NY)];
@@ -326,7 +241,7 @@ int main() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(obstacles_indices),
                  obstacles_indices, GL_STATIC_DRAW);
 
-    // // Positions attribute
+    // Positions attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                           (void *)0);
     glEnableVertexAttribArray(0);
@@ -335,16 +250,6 @@ int main() {
     // glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
     //                       (void *)(3 * sizeof(float)));
     // glEnableVertexAttribArray(1);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered
-    // circles_VBO as the vertex attribute's bound vertex buffer object so
-    // afterwards we can safely unbind glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // You can unbind the circles_VAO afterwards so other circles_VAO calls
-    // won't accidentally modify this circles_VAO, but this rarely happens.
-    // Modifying other circles_VAOs requires a call to glBindVertexArray aNYways
-    // so we generally don't unbind circles_VAOs (nor circles_VBOs) when it's
-    // not directly necessary. glBindVertexArray(0);
 
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -369,8 +274,10 @@ int main() {
         // fall(old_grid, new_grid);
 
         // Calculate the water droplets and obstacles based on grid
-        circle_from_grid(new_grid, circles_vertices, n_circles);
-        obstacles_from_grid(new_grid, obstacles_vertices, n_obstacles);
+        board_circle_from_grid(board.new_grid, circles_vertices,
+                               board.n_circles);
+        board_obstacles_from_grid(board.new_grid, obstacles_vertices,
+                                  board.n_obstacles);
 
         // input
         // -----
@@ -390,7 +297,9 @@ int main() {
         glBindBuffer(GL_ARRAY_BUFFER, circles_VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices),
                      circles_vertices, GL_DYNAMIC_DRAW);
-        glDrawElements(GL_TRIANGLES, CIRCLES_INDEX_ARRAY_LENGTH(n_circles),
+        int bajs = CIRCLES_INDEX_ARRAY_LENGTH(board.n_circles);
+        glDrawElements(GL_TRIANGLES,
+                       CIRCLES_INDEX_ARRAY_LENGTH(board.n_circles),
                        GL_UNSIGNED_INT, 0);
 
         // Draw obstacles
@@ -399,7 +308,8 @@ int main() {
         glBindBuffer(GL_ARRAY_BUFFER, obstacles_VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(obstacles_vertices),
                      obstacles_vertices, GL_DYNAMIC_DRAW);
-        glDrawElements(GL_TRIANGLES, OBSTACLES_INDEX_ARRAY_LENGTH(n_obstacles),
+        glDrawElements(GL_TRIANGLES,
+                       OBSTACLES_INDEX_ARRAY_LENGTH(board.n_obstacles),
                        GL_UNSIGNED_INT, 0);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse
@@ -407,6 +317,7 @@ int main() {
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
+        int tehaiontoieahn = 5 + 5;
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
@@ -451,22 +362,32 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // displays.
     glViewport(0, 0, width, height);
 }
+
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     // printf("Mouse at x: %f and y: %f\n", xpos, ypos);
     // printf("Mouse at grid index: %d\n", GLFW_POS_TO_GRID_INDEX(xpos, ypos));
-    int grid_x = PIXEL_X_TO_GRID_X(xpos-1);
-    int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos-1);
-    printf("pixel x to grid x: %d, pixel y to grid y: %d, grid index: %d\n",
-    grid_x, grid_y, INDEX_OF_POS(grid_x, grid_y));
-    assert(grid_x <= NX-1);
-    assert(grid_y <= NY-1);
+
+    // For some reason it seems that xpos and ypos can be outside of the window
+    if (xpos > SCR_WIDTH || xpos < 0)
+        return;
+    else if (ypos > SCR_HEIGHT || ypos < 0)
+        return;
+
+    // int grid_x = PIXEL_X_TO_GRID_X(xpos - 1);
+    // int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos - 1);
+    // printf("pixel x to grid x: %d, pixel y to grid y: %d, grid index: %d\n",
+    //        grid_x, grid_y, INDEX_OF_POS(grid_x, grid_y));
+    // assert_(grid_x <= NX - 1 && grid_x >= 0,
+    //         "Grid_x must be smaller than NX and greater than 0");
+    // assert_(grid_y <= NY - 1 && grid_y >= 0,
+    //         "Grid_y must be smaller than NY and greater than 0");
     // printf("\n");
 
     // If the mouse is pressed then an object should be either drawn or removed
     if (mouse_state == GLFW_PRESS) {
         // What to draw is basd on keyboard state
-        int grid_x = PIXEL_X_TO_GRID_X(xpos);
-        int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos);
+        int grid_x = PIXEL_X_TO_GRID_X(xpos - 1);
+        int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos - 1);
         modify_grid(grid_x, grid_y, keyboard_state);
     }
 }
@@ -511,5 +432,15 @@ void remove_obstacle_to_grid(int x, int y);
 
 void modify_grid(int x, int y, int resulting_state) {
     // printf("Gonna modify grid!\n");
-    new_grid[INDEX_OF_POS(x,y)] = resulting_state;
+    assert_(x <= NX - 1 && x >= 0,
+            "Grid_x must be smaller than NX and greater than 0");
+    assert_(y <= NY - 1 && y >= 0,
+            "Grid_y must be smaller than NY and greater than 0");
+
+    // Update the counters of how many obstacles and waters there ar1e
+    int index = INDEX_OF_POS(x, y);
+    state_type old_state = board.new_grid[index];
+    board_inc_counter(&board, resulting_state);
+    board_dec_counter(&board, old_state);
+    board.new_grid[index] = resulting_state;
 }
