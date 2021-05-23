@@ -9,7 +9,7 @@
 //======================================//
 
 // Number of cols
-#define NX 10
+#define NX 1
 
 // Number of rows
 #define NY 10

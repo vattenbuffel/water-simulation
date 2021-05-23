@@ -175,7 +175,7 @@ void board_simulate(Board *board, Board *new_board) {
 
             // Only do something if cell below is not obstacle and this cell
             // isn't is at the bottom
-            if (cell_below.state != states_obstacle && y!=0) {
+            if (cell_below.state != states_obstacle && y != 0) {
                 float mass_below = cell_below.mass;
                 float possible_mass_below =
                     get_stable_state_b(cur_mass + mass_below);
@@ -185,11 +185,26 @@ void board_simulate(Board *board, Board *new_board) {
                 cur_mass -= flow;
 
                 // Update the water contents in the cell below
-                // new_board->grid[index_below].state = states_water;
                 new_board->grid[index_below].mass += flow;
             }
 
             // Step 4) Move water up
+            if (y != NY - 1) {
+                int index_above = INDEX_OF_POS(x, y + 1);
+                Cell cell_above = board->grid[index_above];
+                if (cell_above.state != states_obstacle) {
+                    float mass_to_move =
+                        cur_mass -
+                        get_stable_state_b(cur_mass + cell_above.mass);
+                    if (mass_to_move > 0) {
+                        float flow = MAX(cur_mass, mass_to_move);
+                        flow = BOARD_LIMIT_FLOW(flow);
+                        cur_mass -= flow;
+                        // Update the water contents in the cell above
+                        new_board->grid[index_above].mass += flow;
+                    }
+                }
+            }
 
             // This isn't in the source but surely it is like this. Otherwhise
             // all the water but the flow is gone from this cell
