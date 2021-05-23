@@ -16,7 +16,7 @@
 /* TODO:
  *   Implementera automata för simulation av vattnets rörelser
  *   Massively speed up calculating the positions of water
- *
+ *   The water should be darker the more there is
  */
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -51,7 +51,8 @@ int mouse_state = GLFW_RELEASE;
 Keyboard keyboard;
 
 // Board state
-static Board board;
+Board board;
+Board new_board;
 
 const char *vertexShaderSource = "#version 330 core\n"
                                  "layout (location = 0) in vec3 aPos;\n"
@@ -81,6 +82,7 @@ const char *fragmentShaderSourceObstacles =
 int main() {
     // Init the board
     board_init(&board);
+    board_init(&new_board);
     // Init keyboard
     keyboard_init(&keyboard);
 
@@ -187,7 +189,7 @@ int main() {
     //         assert_(state < states_max_val && state >= 0,
     //                 "State value must be between states_max_cal and 0.");
     //         state = states_water; // TEMP
-    //         board.new_grid[INDEX_OF_POS(x, y)] = state;
+    //         board.grid[INDEX_OF_POS(x, y)] = state;
     //         board_inc_counter(&board, state);
     //     }
     // }
@@ -269,13 +271,12 @@ int main() {
         }
 
         // Simulation logic
-        // memcpy(old_grid, new_grid, sizeof(new_grid));
-        // fall(old_grid, new_grid);
+        if (keyboard.run_simulation)
+            board_simulate(&board, &new_board);
 
         // Calculate the water droplets and obstacles based on grid
-        board_circle_from_grid(board.new_grid, circles_vertices,
-                               board.n_circles);
-        board_obstacles_from_grid(board.new_grid, obstacles_vertices,
+        board_circle_from_grid(board.grid, circles_vertices, board.n_circles);
+        board_obstacles_from_grid(board.grid, obstacles_vertices,
                                   board.n_obstacles);
 
         // input
@@ -336,38 +337,40 @@ int main() {
 // frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window) {
+    bool should_restart = false; // Restarts should be abolished if anything
+                                 // but ENTER is pressed after R
+
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     else if (glfwGetKey(window, GLFW_KEY_1)) {
         // printf("Switching to keyboard state water\n");
         keyboard.state = states_water;
-        keyboard.restart = false; // Restarts should be abolished if anything
-                                  // but ENTER is pressed after R
     } else if (glfwGetKey(window, GLFW_KEY_2)) {
         // printf("Switching to keyboard state obstacle\n");
         keyboard.state = states_obstacle;
-        keyboard.restart = false;
     } else if (glfwGetKey(window, GLFW_KEY_3)) {
         // printf("Switching to keyboard state background\n");
         keyboard.state = states_background;
-        keyboard.restart = false;
     } else if (glfwGetKey(window, GLFW_KEY_R)) {
         printf("Restart initialized.\nPress ENTER to restart board.\n");
-        keyboard.restart = true;
+        should_restart = true;
     } else if (glfwGetKey(window, GLFW_KEY_ENTER)) {
         if (keyboard.restart) {
             printf("Going to restart board\n");
+            keyboard.run_simulation = false;
             board_restart(&board);
         }
-        keyboard.restart = false;
     } else if (glfwGetKey(window, GLFW_KEY_A)) {
         printf("Simulation should start\n");
+        keyboard.run_simulation = true;
     } else if (glfwGetKey(window, GLFW_KEY_D)) {
         printf("Simulation should stop\n");
+        keyboard.run_simulation = false;
+    } else {
+        // printf("Unhandled keystroke!\n");
+        should_restart = keyboard.restart;
     }
-
-    // else
-    //     printf("Unhandled keystroke!\n");
+    keyboard.restart = should_restart;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback
@@ -424,20 +427,20 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
     //     button_action);
 }
 
-void fall(float *old_grid, float *new_grid) {
-    float state;
-    for (int y = 1; y < NY; y++) {
-        for (int x = 0; x < NX; x++) {
-            state = old_grid[y * NX * 3 + x * 3 + 2];
-            if (state !=
-                states_max_val) // This should really be static/obstacles state
-                new_grid[(y - 1) * NX * 3 + x * 3 + 2] = state;
-        }
-    }
+// void fall(float *old_grid, float *new_grid) {
+//     float state;
+//     for (int y = 1; y < NY; y++) {
+//         for (int x = 0; x < NX; x++) {
+//             state = old_grid[y * NX * 3 + x * 3 + 2];
+//             if (state !=
+//                 states_max_val) // This should really be static/obstacles
+//                 state new_grid[(y - 1) * NX * 3 + x * 3 + 2] = state;
+//         }
+//     }
 
-    for (int x = 0; x < NX; x++) {
-        state = new_grid[(NY - 1) * NX * 3 + x * 3 + 2];
-        if (state == states_water)
-            new_grid[(NY - 1) * NX * 3 + x * 3 + 2] = states_background;
-    }
-}
+//     for (int x = 0; x < NX; x++) {
+//         state = new_grid[(NY - 1) * NX * 3 + x * 3 + 2];
+//         if (state == states_water)
+//             new_grid[(NY - 1) * NX * 3 + x * 3 + 2] = states_background;
+//     }
+// }

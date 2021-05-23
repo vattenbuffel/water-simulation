@@ -16,6 +16,8 @@ struct Keyboard{
     state_type state;
     // Keeps track of if a restart is initiated
     bool restart;
+    // If we should simulate or not
+    bool run_simulation;
 };
 
 //======================================//

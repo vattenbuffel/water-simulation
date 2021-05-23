@@ -19,5 +19,5 @@
 
 void keyboard_init(Keyboard* keyboard){
     keyboard->restart = false;
-    keyboard->state = states_background;
+    keyboard->state = states_water;
 }
