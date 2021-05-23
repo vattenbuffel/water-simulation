@@ -8,10 +8,41 @@
 //======================================//
 // Local function declarations
 //======================================//
+/**
+ * @brief 
+ * 
+ * @param board 
+ * @param state 
+ */
+void board_dec_counter(Board *board, state_type state);
+
+/**
+ * @brief 
+ * 
+ * @param board 
+ * @param state 
+ */
+void board_inc_counter(Board *board, state_type state);
 
 //======================================//
 // Local function implementations
 //======================================//
+void board_dec_counter(Board *board, state_type state) {
+    if (state == states_water)
+        board->n_circles -= 1;
+
+    if (state == states_obstacle)
+        board->n_obstacles -= 1;
+}
+
+void board_inc_counter(Board *board, state_type state) {
+    if (state == states_water)
+        board->n_circles += 1;
+
+    if (state == states_obstacle)
+        board->n_obstacles += 1;
+}
+
 
 //======================================//
 // Global function implementations
@@ -70,18 +101,17 @@ void board_obstacles_from_grid(int *grid, float *vertices, int n_obstacles) {
                    n_obstacles);
 }
 
-void board_dec_counter(Board *board, state_type state) {
-    if (state == states_water)
-        board->n_circles -= 1;
+void board_modify_grid(Board *board, int x, int y, int resulting_state) {
+    // printf("Gonna modify grid!\n");
+    assert_(x <= NX - 1 && x >= 0,
+            "Grid_x must be smaller than NX and greater than 0");
+    assert_(y <= NY - 1 && y >= 0,
+            "Grid_y must be smaller than NY and greater than 0");
 
-    if (state == states_obstacle)
-        board->n_obstacles -= 1;
-}
-
-void board_inc_counter(Board *board, state_type state) {
-    if (state == states_water)
-        board->n_circles += 1;
-
-    if (state == states_obstacle)
-        board->n_obstacles += 1;
+    // Update the counters of how many obstacles and waters there ar1e
+    int index = INDEX_OF_POS(x, y);
+    state_type old_state = board->new_grid[index];
+    board_inc_counter(board, resulting_state);
+    board_dec_counter(board, old_state);
+    board->new_grid[index] = resulting_state;
 }

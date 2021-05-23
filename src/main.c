@@ -41,10 +41,6 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 
 void processInput(GLFWwindow *window);
-void add_water_to_grid(int x, int y);
-void remove_water_to_grid(int x, int y);
-void add_obstacle_to_grid(int x, int y);
-void remove_obstacle_to_grid(int x, int y);
 void modify_grid(int x, int y, int resulting_state);
 void fall(float *all_pixels, float *updated_pixels);
 
@@ -388,7 +384,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
         // What to draw is basd on keyboard state
         int grid_x = PIXEL_X_TO_GRID_X(xpos - 1);
         int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos - 1);
-        modify_grid(grid_x, grid_y, keyboard_state);
+        board_modify_grid(&board, grid_x, grid_y, keyboard_state);
     }
 }
 
@@ -425,22 +421,3 @@ void fall(float *old_grid, float *new_grid) {
     }
 }
 
-void add_water_to_grid(int x, int y);
-void remove_water_to_grid(int x, int y);
-void add_obstacle_to_grid(int x, int y);
-void remove_obstacle_to_grid(int x, int y);
-
-void modify_grid(int x, int y, int resulting_state) {
-    // printf("Gonna modify grid!\n");
-    assert_(x <= NX - 1 && x >= 0,
-            "Grid_x must be smaller than NX and greater than 0");
-    assert_(y <= NY - 1 && y >= 0,
-            "Grid_y must be smaller than NY and greater than 0");
-
-    // Update the counters of how many obstacles and waters there ar1e
-    int index = INDEX_OF_POS(x, y);
-    state_type old_state = board.new_grid[index];
-    board_inc_counter(&board, resulting_state);
-    board_dec_counter(&board, old_state);
-    board.new_grid[index] = resulting_state;
-}

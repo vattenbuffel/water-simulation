@@ -99,17 +99,11 @@ void board_obstacles_from_grid(int *grid, float *vertices, int n_obstacles);
  * @brief 
  * 
  * @param board 
- * @param state 
+ * @param x 
+ * @param y 
+ * @param resulting_state 
  */
-void board_dec_counter(Board *board, state_type state);
-
-/**
- * @brief 
- * 
- * @param board 
- * @param state 
- */
-void board_inc_counter(Board *board, state_type state);
+void board_modify_grid(Board *board, int x, int y, int resulting_state);
 
 
 #endif //BOARD_H
