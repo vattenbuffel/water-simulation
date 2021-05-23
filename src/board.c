@@ -163,13 +163,13 @@ void board_simulate(Board *board, Board *new_board) {
         for (int x = 0; x < NX; x++) {
             int cur_index = INDEX_OF_POS(x, y);
             Cell cur_cell = board->grid[cur_index];
+            float cur_mass = cur_cell.mass;
 
             // Only water cells have any simulation
             if (cur_cell.state != states_water)
                 continue;
 
             // Step 1) Move water down
-            float cur_mass = cur_cell.mass;
             int index_below = INDEX_OF_POS(x, y - 1);
             Cell cell_below = board->grid[index_below];
 
@@ -188,6 +188,36 @@ void board_simulate(Board *board, Board *new_board) {
                 new_board->grid[index_below].mass += flow;
             }
 
+            // Step 2) Move water left
+            if (x != 0) {
+                int index_left = INDEX_OF_POS(x - 1, y);
+                Cell cell_left = board->grid[index_left];
+                if (cell_left.state != states_obstacle) {
+                    float mass_to_move = (cur_mass - cell_left.mass) / 2.0f;
+                    if (mass_to_move >= BOARD_MIN_FLOW) {
+                        float flow = BOARD_LIMIT_FLOW(mass_to_move);
+                        cur_mass -= flow;
+                        // Update the water contents in the cell to the left
+                        new_board->grid[index_left].mass += flow;
+                    }
+                }
+            }
+
+            // Step 3) Move water right
+            if (x != NX - 1) {
+                int index_right = INDEX_OF_POS(x + 1, y);
+                Cell cell_right = board->grid[index_right];
+                if (cell_right.state != states_obstacle) {
+                    float mass_to_move = (cur_mass - cell_right.mass) / 2.0f;
+                    if (mass_to_move >= BOARD_MIN_FLOW) {
+                        float flow = BOARD_LIMIT_FLOW(mass_to_move);
+                        cur_mass -= flow;
+                        // Update the water contents in the cell to the right
+                        new_board->grid[index_right].mass += flow;
+                    }
+                }
+            }
+
             // Step 4) Move water up
             if (y != NY - 1) {
                 int index_above = INDEX_OF_POS(x, y + 1);
@@ -196,7 +226,7 @@ void board_simulate(Board *board, Board *new_board) {
                     float mass_to_move =
                         cur_mass -
                         get_stable_state_b(cur_mass + cell_above.mass);
-                    if (mass_to_move > 0) {
+                    if (mass_to_move > BOARD_MIN_FLOW) {
                         float flow = MAX(cur_mass, mass_to_move);
                         flow = BOARD_LIMIT_FLOW(flow);
                         cur_mass -= flow;
@@ -209,6 +239,7 @@ void board_simulate(Board *board, Board *new_board) {
             // This isn't in the source but surely it is like this. Otherwhise
             // all the water but the flow is gone from this cell
             new_board->grid[cur_index].mass += cur_mass;
+            char aethiopaethbo = 5 + 5;
         }
     }
 
@@ -219,7 +250,7 @@ void board_simulate(Board *board, Board *new_board) {
             if (board->grid[index].state == states_obstacle) {
                 new_board->grid[index].state = states_obstacle;
                 board_inc_counter(new_board, states_obstacle);
-            } else if (board->grid[index].mass >= BOARD_MIN_MASS) {
+            } else if (new_board->grid[index].mass >= BOARD_MIN_MASS) {
                 new_board->grid[index].state = states_water;
                 board_inc_counter(new_board, states_water);
             }

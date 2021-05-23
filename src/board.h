@@ -9,7 +9,7 @@
 //======================================//
 
 // Number of cols
-#define NX 1
+#define NX 10
 
 // Number of rows
 #define NY 10
@@ -59,6 +59,10 @@
 
 // Max flow per frame
 #define BOARD_MAX_FLOW 0.02
+
+// Min flow per frame
+#define BOARD_MIN_FLOW BOARD_MIN_MASS
+
 
 // MACRO TO LIMIT FLOW
 #define BOARD_LIMIT_FLOW(flow) (MIN((flow), BOARD_MAX_FLOW))
