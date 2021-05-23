@@ -1,1 +1,0 @@
-/bin/x86_64-linux-gnu-gcc-9 -g   CMakeFiles/tests.dir/tests/main.c.o CMakeFiles/tests.dir/src/circle_creator.c.o CMakeFiles/tests.dir/src/obstacle_creator.c.o  -o tests  -lm 

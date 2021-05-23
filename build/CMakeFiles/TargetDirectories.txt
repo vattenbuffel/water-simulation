@@ -1,5 +1,0 @@
-/home/noa/c-test/water-simulation/build/CMakeFiles/rebuild_cache.dir
-/home/noa/c-test/water-simulation/build/CMakeFiles/edit_cache.dir
-/home/noa/c-test/water-simulation/build/CMakeFiles/tests.dir
-/home/noa/c-test/water-simulation/build/CMakeFiles/main.dir
-/home/noa/c-test/water-simulation/build/CMakeFiles/glad-library.dir
