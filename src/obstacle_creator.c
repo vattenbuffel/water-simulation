@@ -1,5 +1,6 @@
 #include "obstacle_creator.h"
 #include <math.h>
+#include "circle_creator.h"
 
 //======================================//
 // Local function declarations
@@ -18,8 +19,8 @@ void obstacle_init(float *vertices, float side_length, float center_x,
     // Init the four corners
     for (int i = 0; i < 4; i++) {
         double alpha = i * 2 * M_PI / 4 + DEG_TO_RAD(45);
-        float x = center_x + side_length / sqrt(2) * cos(alpha);
-        float y = center_y + side_length / sqrt(2) * sin(alpha);
+        float x = center_x + side_length / sqrt(2) * cos(alpha)  + RADIUS / 2.f;
+        float y = center_y + side_length / sqrt(2) * sin(alpha) + RADIUS / 2.f;
         float z = 0;
 
         int base_index = i * 3;

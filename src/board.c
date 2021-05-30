@@ -4,8 +4,8 @@
 #include "obstacle_creator.h"
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 //======================================//
 // Local function declarations
@@ -71,8 +71,6 @@ void board_init(Board *board) {
     for (int i = 0; i < board_size; i++) {
         board_modify_grid(board, INDEX_TO_COL(i), INDEX_TO_ROW(i),
                           states_background);
-        
-
     }
 
     board->n_circles = 0;
