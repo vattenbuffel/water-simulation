@@ -8,6 +8,7 @@
         "circle_creator.h": "c",
         "stdbool.h": "c",
         "constants.h": "c",
-        "glad.h": "c"
+        "glad.h": "c",
+        "string.h": "c"
     }
 }

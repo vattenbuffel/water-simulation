@@ -63,7 +63,7 @@ typedef struct CircleAll CircleAll;
  * @param center_y
  */
 void circle_populate_circle(Circle *circle, float radius, float center_x,
-                          float center_y);
+                          float center_y, float mass);
 
 /**
  * @brief
@@ -75,7 +75,7 @@ void circle_populate_circle(Circle *circle, float radius, float center_x,
  * @param n_triangles
  */
 void circle_populate_circles(CircleAll *circles, float radius, float *center_x,
-                           float *center_y, int n_triangles);
+                           float *center_y, float* masses, int n_triangles);
 
 /**
  * @brief

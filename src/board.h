@@ -9,13 +9,13 @@
 //======================================//
 
 // Number of cols
-#define NX 5
+#define NX 100
 
 // Number of rows
-#define NY 5
+#define NY 100
 
 // Macro to calculate the index of position x,y in the grid
-#define INDEX_OF_POS(x, y) ((y) * NX + x)
+#define INDEX_OF_POS(x, y) ((y)*NX + x)
 
 // Macro to go from index in grid to col
 #define INDEX_TO_COL(i) ((i) % NX)
@@ -63,10 +63,8 @@
 // Min flow per frame
 #define BOARD_MIN_FLOW BOARD_MIN_MASS
 
-
 // MACRO TO LIMIT FLOW
 #define BOARD_LIMIT_FLOW(flow) (MIN((flow), BOARD_MAX_FLOW))
-
 
 enum States {
     states_background,
@@ -92,6 +90,9 @@ struct Board {
     Cell grid[NY * NX];
     int n_circles;
     int n_obstacles;
+    // Water mass in order from top left to bottom right. Index 0 is the mass of
+    // the first water cell, index 1 of second water etc.
+    float mass_in_order[NY * NX];
 };
 
 //======================================//
@@ -111,8 +112,6 @@ void board_init(Board *board);
  * @param board
  */
 void board_restart(Board *board);
-
-
 
 /**
  * @brief

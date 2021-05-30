@@ -71,6 +71,8 @@ void board_init(Board *board) {
     for (int i = 0; i < board_size; i++) {
         board_modify_grid(board, INDEX_TO_COL(i), INDEX_TO_ROW(i),
                           states_background);
+        
+
     }
 
     board->n_circles = 0;
@@ -239,7 +241,7 @@ void board_simulate(Board *board, Board *new_board) {
             total_mass_in_system += new_board->grid[index].mass;
         }
     }
-    printf("total_mass_in_system %f\n", total_mass_in_system);
+    // printf("total_mass_in_system %f\n", total_mass_in_system);
 
     // Copy new board to board
     memcpy(board, new_board, sizeof(*board));

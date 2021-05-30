@@ -3,8 +3,8 @@
 #include <math.h>
 #include <stdio.h>
 // #include <assert.h>
-#include "board.h"
 #include "assert_.h"
+#include "board.h"
 
 //======================================//
 // Local function declarations
@@ -19,24 +19,26 @@
 //======================================//
 
 void circle_populate_circle(Circle *circle, float radius, float center_x,
-                          float center_y) {
-    circle->vertices[0].pos[0] = center_x + RADIUS/2.f;
-    circle->vertices[0].pos[1] = center_y + RADIUS/2.f;
+                            float center_y, float mass) {
+    circle->vertices[0].pos[0] = center_x + RADIUS / 2.f;
+    circle->vertices[0].pos[1] = center_y + RADIUS / 2.f;
     circle->vertices[0].pos[2] = 0;
+    circle->vertices[0].mass = mass;
 
     // Calculate the values of the vertices
     for (int i = 1; i < CIRCLE_VERTICES_IN_CIRCLE; i++) {
         double alpha = 2 * M_PI / N_TRIANGLES * i;
-        float x = radius * cos(alpha) + center_x  + RADIUS/2.f;
-        float y = radius * sin(alpha) + center_y  + RADIUS/2.f;
+        float x = radius * cos(alpha) + center_x + RADIUS / 2.f;
+        float y = radius * sin(alpha) + center_y + RADIUS / 2.f;
         circle->vertices[i].pos[0] = x;
         circle->vertices[i].pos[1] = y;
         circle->vertices[i].pos[2] = 0;
+        circle->vertices[i].mass = mass;
     }
 }
 
 void circle_populate_circles(CircleAll *circles, float radius, float *center_x,
-                           float *center_y, int n_circles) {
+                             float *center_y, float *masses, int n_circles) {
     // printf("In init_triangle_circles n_circles: %d\n", n_circles);
     // Idiot check to make sure that the number of circles is at least within
     // what's possible
@@ -46,11 +48,12 @@ void circle_populate_circles(CircleAll *circles, float radius, float *center_x,
     // Create the triangle circles
     for (int i = 0; i < n_circles; i++) {
         Circle *circle = &(circles->circles[i]);
-        circle_populate_circle(circle, radius, center_x[i], center_y[i]);
+        circle_populate_circle(circle, radius, center_x[i], center_y[i],
+                               masses[i]);
     }
 }
 
-void circle_from_grid(Cell *grid, CircleAll* circles, int n_circles) {
+void circle_from_grid(Cell *grid, CircleAll *circles, int n_circles) {
     // printf("In circle_from_grid n_circles: %d\n", n_circles);
     // Idiot check to make sure that the number of circles is at least within
     // what's possible
@@ -60,16 +63,19 @@ void circle_from_grid(Cell *grid, CircleAll* circles, int n_circles) {
     int center_i = 0;
     float center_x[n_circles];
     float center_y[n_circles];
+    float mass[n_circles];
     for (int i = 0; i < NX * NY; i++) {
         state_type state = grid[i].state;
         if (state == states_water) {
             center_x[center_i] = INDEX_TO_X(i);
             center_y[center_i] = INDEX_TO_Y(i);
+            mass[center_i] = grid[i].mass;
             center_i++;
         }
     }
 
-    circle_populate_circles(circles, RADIUS, center_x, center_y, n_circles);
+    circle_populate_circles(circles, RADIUS, center_x, center_y, mass,
+                            n_circles);
 }
 
 void circle_connecting_vertices(unsigned int *connections, int n_triangles) {

@@ -73,10 +73,10 @@ const char *vertexShaderSourceCircle =
     "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "layout (location = 1) in float mass;\n"
-    "out float blueColor;\n"
+    "out float mass_;\n"
     "void main()\n"
     "{\n"
-    "  blueColor = max(1.0, mass/1.1f);\n"
+    "  mass_ = mass;\n"
     "  float x = (aPos.x-400)/400;\n"
     "  float y = (aPos.y-400)/400;\n"
     "   gl_Position = vec4(x, y, aPos.z, 1.0);\n"
@@ -84,12 +84,17 @@ const char *vertexShaderSourceCircle =
 
 const char *fragmentShaderSourceCircles =
     "#version 330 core\n"
-    "in float blueColor;\n"
+    "in float mass_;\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(0.0f, 0.5f, blueColor, 0.3f);\n"
+    "   float mass_processed = min(mass_ / 1.1f, 1.0f);\n"
+    "   float blueColor = 1.0f - 0.5f * mass_processed;\n;"
+    "   float greenColor = 0.5f - 0.5f * mass_processed;\n"
+    "   float alpha = 0.3f - 0.5f * mass_processed;\n"
+    "   FragColor = vec4(0.0f, greenColor, blueColor, alpha);\n"
     "}\n\0";
+    //1.0f - 0.5f * min(mass, 1.0f)\n;"
 
 const char *vertexShaderSourceObstacle =
     "#version 330 core\n"
