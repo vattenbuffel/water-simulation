@@ -1,0 +1,10 @@
+Start system by pressing A
+Stop by pressing D
+
+Pressing 1 selects water
+Pressing 2 selects obstacle
+Pressing 3 selects background
+
+Pressing R and then ENTER restarts
+
+Presing mouse 1 draws

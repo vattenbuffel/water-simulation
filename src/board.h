@@ -9,10 +9,10 @@
 //======================================//
 
 // Number of cols
-#define NX 10
+#define NX 5
 
 // Number of rows
-#define NY 10
+#define NY 5
 
 // Macro to calculate the index of position x,y in the grid
 #define INDEX_OF_POS(x, y) ((y) * NX + x)
@@ -58,7 +58,7 @@
 #define BOARD_MIN_MASS 0.0001
 
 // Max flow per frame
-#define BOARD_MAX_FLOW 0.02
+#define BOARD_MAX_FLOW 0.1
 
 // Min flow per frame
 #define BOARD_MIN_FLOW BOARD_MIN_MASS

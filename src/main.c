@@ -14,10 +14,17 @@
 #include <time.h>
 
 /* TODO:
- *   Implementera automata för simulation av vattnets rörelser
  *   Massively speed up calculating the positions of water
  *   The water should be darker the more there is
+ *   Make mouse placement smoothing by always placing when mouse is pressed
+ *   Fix bug with replecating water
+ *   Why can't NX=NY=500?
  */
+
+// Macro to calculate how long an array needs to be to store both the vertices
+// of water circles and it's mass
+#define VERTICES_MASS_ARRAY_LENGTH(n)                                          \
+    (CIRCLES_VERTICES_ARRAY_LENGTH(n) + (n)*N_TRIANGLES)
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -41,12 +48,25 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
  */
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 
+/**
+ * @brief Combines the vertices in circles_vertices with the masses in board
+ * into circles_vertices_mass, which can be passed into the shader to draw the
+ * water circles.
+ *
+ * @param circles_vertices
+ * @param board
+ * @param circles_vertices_mass
+ */
+void combine_vertices_mass(float *circles_vertices, Board *board,
+                           float *circles_vertices_mass);
+
 void processInput(GLFWwindow *window);
 void modify_grid(int x, int y, int resulting_state);
 void fall(float *all_pixels, float *updated_pixels);
 
 // state of mouse. either pressed or not pressed
 int mouse_state = GLFW_RELEASE;
+
 // State of keyboard.
 Keyboard keyboard;
 
@@ -54,23 +74,37 @@ Keyboard keyboard;
 Board board;
 Board new_board;
 
-const char *vertexShaderSource = "#version 330 core\n"
-                                 "layout (location = 0) in vec3 aPos;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "float x = (aPos.x-400)/400;\n"
-                                 "float y = (aPos.y-400)/400;\n"
-                                 "   gl_Position = vec4(x, y, aPos.z, 1.0);\n"
-                                 "}\0";
+const char *vertexShaderSourceCircle =
+    "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 1) in float mass;\n"
+    "out float blueColor;\n"
+    "void main()\n"
+    "{\n"
+    "  blueColor = max(1.0, mass/1.1f);\n"
+    "  float x = (aPos.x-400)/400;\n"
+    "  float y = (aPos.y-400)/400;\n"
+    "   gl_Position = vec4(x, y, aPos.z, 1.0);\n"
+    "}\0";
 
 const char *fragmentShaderSourceCircles =
     "#version 330 core\n"
+    "in float blueColor;\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(0.0f, 0.5f, 0.8f, 0.3f);\n"
+    "   FragColor = vec4(0.0f, 0.5f, blueColor, 0.3f);\n"
     "}\n\0";
 
+const char *vertexShaderSourceObstacle =
+    "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "  float x = (aPos.x-400)/400;\n"
+    "  float y = (aPos.y-400)/400;\n"
+    "   gl_Position = vec4(x, y, aPos.z, 1.0);\n"
+    "}\0";
 const char *fragmentShaderSourceObstacles =
     "#version 330 core\n"
     "out vec4 FragColor;\n"
@@ -121,33 +155,32 @@ int main() {
 
     // build and compile our shader program
     // ------------------------------------
-    // vertex shader
-    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    // vertex shader circle
+    unsigned int vertexShaderCircle = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShaderCircle, 1, &vertexShaderSourceCircle, NULL);
+    glCompileShader(vertexShaderCircle);
     // check for shader compile errors
     int success;
     char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(vertexShaderCircle, GL_COMPILE_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        glGetShaderInfoLog(vertexShaderCircle, 512, NULL, infoLog);
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED: %s\n", infoLog);
     }
     // fragment shader circle
-    unsigned int fragmentShaderCircles = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShaderCircles, 1, &fragmentShaderSourceCircles,
-                   NULL);
-    glCompileShader(fragmentShaderCircles);
+    unsigned int fragmentShaderCircle = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShaderCircle, 1, &fragmentShaderSourceCircles, NULL);
+    glCompileShader(fragmentShaderCircle);
     // check for shader compile errors
-    glGetShaderiv(fragmentShaderCircles, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(fragmentShaderCircle, GL_COMPILE_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(fragmentShaderCircles, 512, NULL, infoLog);
+        glGetShaderInfoLog(fragmentShaderCircle, 512, NULL, infoLog);
         printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: %s\n", infoLog);
     }
     // link shaders circle
     unsigned int shaderProgramCircles = glCreateProgram();
-    glAttachShader(shaderProgramCircles, vertexShader);
-    glAttachShader(shaderProgramCircles, fragmentShaderCircles);
+    glAttachShader(shaderProgramCircles, vertexShaderCircle);
+    glAttachShader(shaderProgramCircles, fragmentShaderCircle);
     glLinkProgram(shaderProgramCircles);
     // check for linking errors
     glGetProgramiv(shaderProgramCircles, GL_LINK_STATUS, &success);
@@ -155,23 +188,34 @@ int main() {
         glGetProgramInfoLog(shaderProgramCircles, 512, NULL, infoLog);
         printf("ERROR::SHADER::PROGRAM::LINKING::FAILED: %s\n", infoLog);
     }
-    glDeleteShader(fragmentShaderCircles);
+    glDeleteShader(fragmentShaderCircle);
+    glDeleteShader(vertexShaderCircle);
 
-    // fragment shader obstacles
-    unsigned int fragmentShaderObstacles = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShaderObstacles, 1, &fragmentShaderSourceObstacles,
-                   NULL);
-    glCompileShader(fragmentShaderObstacles);
+    // vertex shader obstacle
+    unsigned int vertexShaderObstacle = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShaderObstacle, 1, &vertexShaderSourceObstacle, NULL);
+    glCompileShader(vertexShaderObstacle);
     // check for shader compile errors
-    glGetShaderiv(fragmentShaderObstacles, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(vertexShaderObstacle, GL_COMPILE_STATUS, &success);
     if (!success) {
-        glGetShaderInfoLog(fragmentShaderObstacles, 512, NULL, infoLog);
+        glGetShaderInfoLog(vertexShaderObstacle, 512, NULL, infoLog);
+        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED: %s\n", infoLog);
+    }
+    // fragment shader obstacles
+    unsigned int fragmentShaderObstacle = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShaderObstacle, 1, &fragmentShaderSourceObstacles,
+                   NULL);
+    glCompileShader(fragmentShaderObstacle);
+    // check for shader compile errors
+    glGetShaderiv(fragmentShaderObstacle, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShaderObstacle, 512, NULL, infoLog);
         printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: %s\n", infoLog);
     }
     // link shaders circle
     unsigned int shaderProgramObstacles = glCreateProgram();
-    glAttachShader(shaderProgramObstacles, vertexShader);
-    glAttachShader(shaderProgramObstacles, fragmentShaderObstacles);
+    glAttachShader(shaderProgramObstacles, vertexShaderObstacle);
+    glAttachShader(shaderProgramObstacles, fragmentShaderObstacle);
     glLinkProgram(shaderProgramObstacles);
     // check for linking errors
     glGetProgramiv(shaderProgramObstacles, GL_LINK_STATUS, &success);
@@ -179,8 +223,8 @@ int main() {
         glGetProgramInfoLog(shaderProgramObstacles, 512, NULL, infoLog);
         printf("ERROR::SHADER::PROGRAM::LINKING::FAILED: %s\n", infoLog);
     }
-    glDeleteShader(fragmentShaderObstacles);
-    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShaderObstacle);
+    glDeleteShader(vertexShaderObstacle);
 
     // Create the grid of the water dropplet and obstacle positions
     // for (int y = 0; y < NY; y++) {
@@ -195,14 +239,17 @@ int main() {
     // }
 
     // Create the indices array for the circles
-    unsigned int circles_indices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
+    static unsigned int circles_indices[CIRCLES_INDEX_ARRAY_LENGTH(NX * NY)];
     circles_connecting_vertices(circles_indices, NX * NY);
 
     // Create the arrays containing the pixel locations of the circles
     static float circles_vertices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
+    // Array for circles vertices and mass
+    static float circles_vertices_mass[VERTICES_MASS_ARRAY_LENGTH(NX * NY)];
 
     // Create the indices array for the obstacles
-    unsigned int obstacles_indices[OBSTACLES_INDEX_ARRAY_LENGTH(NX * NY)];
+    static unsigned int
+        obstacles_indices[OBSTACLES_INDEX_ARRAY_LENGTH(NX * NY)];
     obstacles_connecting_vertices(obstacles_indices, NX * NY);
 
     // Create the arrays containing the pixel locations of the obstacles
@@ -221,17 +268,22 @@ int main() {
     glBindVertexArray(circles_VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, circles_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices), circles_vertices,
-                 GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices_mass),
+                 circles_vertices_mass, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, circles_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(circles_indices),
-                 circles_indices, GL_STATIC_DRAW);
+                 circles_indices, GL_DYNAMIC_DRAW);
 
-    // Positions attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+    // Positions attribute for circles
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                           (void *)0);
     glEnableVertexAttribArray(0);
+
+    // mass/color attribute for circles
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                          (void*)(3* sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(obstacles_VAO);
     glBindBuffer(GL_ARRAY_BUFFER, obstacles_VBO);
@@ -242,7 +294,7 @@ int main() {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(obstacles_indices),
                  obstacles_indices, GL_STATIC_DRAW);
 
-    // Positions attribute
+    // Positions attribute for obstacles
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
                           (void *)0);
     glEnableVertexAttribArray(0);
@@ -276,6 +328,7 @@ int main() {
 
         // Calculate the water droplets and obstacles based on grid
         board_circle_from_grid(board.grid, circles_vertices, board.n_circles);
+        combine_vertices_mass(circles_vertices, &board, circles_vertices_mass);
         board_obstacles_from_grid(board.grid, obstacles_vertices,
                                   board.n_obstacles);
 
@@ -295,9 +348,8 @@ int main() {
         glUseProgram(shaderProgramCircles);
         glBindVertexArray(circles_VAO);
         glBindBuffer(GL_ARRAY_BUFFER, circles_VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices),
-                     circles_vertices, GL_DYNAMIC_DRAW);
-        int bajs = CIRCLES_INDEX_ARRAY_LENGTH(board.n_circles);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices_mass),
+                     circles_vertices_mass, GL_DYNAMIC_DRAW);
         glDrawElements(GL_TRIANGLES,
                        CIRCLES_INDEX_ARRAY_LENGTH(board.n_circles),
                        GL_UNSIGNED_INT, 0);
@@ -412,6 +464,26 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
     }
 }
 
+void combine_vertices_mass(float *circles_vertices, Board *board,
+                           float *circles_vertices_mass) {
+    // TODO: Instead of this mess each what's stored in circles_vertices should
+    // be a struct called circle_vertix which contains both x,y,z and mass.
+    for (int i = 0; i < board->n_circles; i++) {
+        for (int j = 0; j < N_TRIANGLES+1; j++) {
+            int index_vertices = CIRCLES_VERTICES_ARRAY_LENGTH(i) + j * 3;
+            int index_vertices_mass = VERTICES_MASS_ARRAY_LENGTH(i) + j * 4;
+            for (int k = 0; k < 3; k++) {
+                // Copy vertices
+                circles_vertices_mass[index_vertices_mass + k] =
+                    circles_vertices[index_vertices + k];
+            }
+            // Copy color
+            circles_vertices_mass[index_vertices_mass + 3] =
+                0.1*i + 0.1; // TODO:Make this copy the actual color
+        }
+    }
+}
+
 void mouse_button_callback(GLFWwindow *window, int button, int action,
                            int mods) {
     mouse_state = action;
@@ -426,21 +498,3 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
     //     printf("Unhandled button with id %d was %s\n", action,
     //     button_action);
 }
-
-// void fall(float *old_grid, float *new_grid) {
-//     float state;
-//     for (int y = 1; y < NY; y++) {
-//         for (int x = 0; x < NX; x++) {
-//             state = old_grid[y * NX * 3 + x * 3 + 2];
-//             if (state !=
-//                 states_max_val) // This should really be static/obstacles
-//                 state new_grid[(y - 1) * NX * 3 + x * 3 + 2] = state;
-//         }
-//     }
-
-//     for (int x = 0; x < NX; x++) {
-//         state = new_grid[(NY - 1) * NX * 3 + x * 3 + 2];
-//         if (state == states_water)
-//             new_grid[(NY - 1) * NX * 3 + x * 3 + 2] = states_background;
-//     }
-// }

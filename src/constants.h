@@ -8,7 +8,7 @@
 #define RADIUS (1 * SCR_WIDTH / NY)
 
 // Side length of obstacle
-#define OBSTACLE_SIDE_LENGTH (2 * RADIUS)
+#define OBSTACLE_SIDE_LENGTH (1 * RADIUS)
 
 #define SCR_WIDTH 800
 #define SCR_HEIGHT 800

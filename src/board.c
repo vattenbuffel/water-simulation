@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 //======================================//
 // Local function declarations
@@ -193,7 +194,8 @@ void board_simulate(Board *board, Board *new_board) {
                 int index_left = INDEX_OF_POS(x - 1, y);
                 Cell cell_left = board->grid[index_left];
                 if (cell_left.state != states_obstacle) {
-                    float mass_to_move = (cur_mass - cell_left.mass) / 2.0f;
+                    float mass_to_move =
+                        (cur_mass - cell_left.mass) / 4.0f * 100;
                     if (mass_to_move >= BOARD_MIN_FLOW) {
                         float flow = BOARD_LIMIT_FLOW(mass_to_move);
                         cur_mass -= flow;
@@ -208,7 +210,8 @@ void board_simulate(Board *board, Board *new_board) {
                 int index_right = INDEX_OF_POS(x + 1, y);
                 Cell cell_right = board->grid[index_right];
                 if (cell_right.state != states_obstacle) {
-                    float mass_to_move = (cur_mass - cell_right.mass) / 2.0f;
+                    float mass_to_move =
+                        (cur_mass - cell_right.mass) / 4.0f * 100;
                     if (mass_to_move >= BOARD_MIN_FLOW) {
                         float flow = BOARD_LIMIT_FLOW(mass_to_move);
                         cur_mass -= flow;
@@ -244,6 +247,7 @@ void board_simulate(Board *board, Board *new_board) {
     }
 
     // Calculate the states of the cells
+    double total_mass_in_system = 0;
     for (int x = 0; x < NX; x++) {
         for (int y = 0; y < NY; y++) {
             int index = INDEX_OF_POS(x, y);
@@ -254,8 +258,10 @@ void board_simulate(Board *board, Board *new_board) {
                 new_board->grid[index].state = states_water;
                 board_inc_counter(new_board, states_water);
             }
+            total_mass_in_system += new_board->grid[index].mass;
         }
     }
+    printf("total_mass_in_system %f\n", total_mass_in_system);
 
     // Copy new board to board
     memcpy(board, new_board, sizeof(*board));
