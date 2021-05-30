@@ -112,14 +112,7 @@ void board_init(Board *board);
  */
 void board_restart(Board *board);
 
-/**
- * @brief
- *
- * @param grid
- * @param vertices
- * @param n_circles
- */
-void board_circle_from_grid(Cell *grid, float *vertices, int n_circles);
+
 
 /**
  * @brief

@@ -79,28 +79,6 @@ void board_init(Board *board) {
 
 void board_restart(Board *board) { board_init(board); }
 
-void board_circle_from_grid(Cell *grid, float *vertices, int n_circles) {
-    // printf("In circle_from_grid n_circles: %d\n", n_circles);
-    // Idiot check to make sure that the number of circles is at least within
-    // what's possible
-    assert_(n_circles <= NX * NY && n_circles >= 0,
-            "n_circles must be between 0 and NX*NY");
-
-    int center_i = 0;
-    float center_x[n_circles];
-    float center_y[n_circles];
-    for (int i = 0; i < NX * NY; i++) {
-        state_type state = grid[i].state;
-        if (state == states_water) {
-            center_x[center_i] = INDEX_TO_X(i);
-            center_y[center_i] = INDEX_TO_Y(i);
-            center_i++;
-        }
-    }
-
-    init_triangle_circles(vertices, RADIUS, center_x, center_y, n_circles);
-}
-
 void board_obstacles_from_grid(Cell *grid, float *vertices, int n_obstacles) {
     // Idiot check to make sure that the number of obstacles is at least within
     // what's possible

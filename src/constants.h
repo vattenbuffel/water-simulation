@@ -3,9 +3,6 @@
 
 #include <stdbool.h>
 
-// Radius of the water circles
-// #define RADIUS (2 * SCR_WIDTH / NX)
-#define RADIUS (1 * SCR_WIDTH / NY)
 
 // Side length of obstacle
 #define OBSTACLE_SIDE_LENGTH (1 * RADIUS)

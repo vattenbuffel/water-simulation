@@ -21,11 +21,6 @@
  *   Why can't NX=NY=500?
  */
 
-// Macro to calculate how long an array needs to be to store both the vertices
-// of water circles and it's mass
-#define VERTICES_MASS_ARRAY_LENGTH(n)                                          \
-    (CIRCLES_VERTICES_ARRAY_LENGTH(n) + (n)*N_TRIANGLES)
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 /**
@@ -226,26 +221,12 @@ int main() {
     glDeleteShader(fragmentShaderObstacle);
     glDeleteShader(vertexShaderObstacle);
 
-    // Create the grid of the water dropplet and obstacle positions
-    // for (int y = 0; y < NY; y++) {
-    //     for (int x = 0; x < NX; x++) {
-    //         float state = (float)(rand() % states_max_val);
-    //         assert_(state < states_max_val && state >= 0,
-    //                 "State value must be between states_max_cal and 0.");
-    //         state = states_water; // TEMP
-    //         board.grid[INDEX_OF_POS(x, y)] = state;
-    //         board_inc_counter(&board, state);
-    //     }
-    // }
-
     // Create the indices array for the circles
     static unsigned int circles_indices[CIRCLES_INDEX_ARRAY_LENGTH(NX * NY)];
-    circles_connecting_vertices(circles_indices, NX * NY);
+    circle_connecting_vertices(circles_indices, NX * NY);
 
-    // Create the arrays containing the pixel locations of the circles
-    static float circles_vertices[CIRCLES_VERTICES_ARRAY_LENGTH(NX * NY)];
-    // Array for circles vertices and mass
-    static float circles_vertices_mass[VERTICES_MASS_ARRAY_LENGTH(NX * NY)];
+    // Create the arrays containing the vertices and mass of the circles
+    static CircleAll circles;
 
     // Create the indices array for the obstacles
     static unsigned int
@@ -268,21 +249,20 @@ int main() {
     glBindVertexArray(circles_VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, circles_VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices_mass),
-                 circles_vertices_mass, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(circles), &circles, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, circles_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(circles_indices),
                  circles_indices, GL_DYNAMIC_DRAW);
 
     // Positions attribute for circles
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(CircleVertex),
                           (void *)0);
     glEnableVertexAttribArray(0);
 
     // mass/color attribute for circles
-    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                          (void*)(3* sizeof(float)));
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(CircleVertex),
+                          (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(obstacles_VAO);
@@ -327,8 +307,7 @@ int main() {
             board_simulate(&board, &new_board);
 
         // Calculate the water droplets and obstacles based on grid
-        board_circle_from_grid(board.grid, circles_vertices, board.n_circles);
-        combine_vertices_mass(circles_vertices, &board, circles_vertices_mass);
+        circle_from_grid(board.grid, &circles, board.n_circles);
         board_obstacles_from_grid(board.grid, obstacles_vertices,
                                   board.n_obstacles);
 
@@ -348,8 +327,8 @@ int main() {
         glUseProgram(shaderProgramCircles);
         glBindVertexArray(circles_VAO);
         glBindBuffer(GL_ARRAY_BUFFER, circles_VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(circles_vertices_mass),
-                     circles_vertices_mass, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(circles), &circles,
+                     GL_DYNAMIC_DRAW);
         glDrawElements(GL_TRIANGLES,
                        CIRCLES_INDEX_ARRAY_LENGTH(board.n_circles),
                        GL_UNSIGNED_INT, 0);
@@ -461,26 +440,6 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos) {
         int grid_x = PIXEL_X_TO_GRID_X(xpos - 1);
         int grid_y = PIXEL_Y_TO_GRID_Y(SCR_HEIGHT - ypos - 1);
         board_modify_grid(&board, grid_x, grid_y, keyboard.state);
-    }
-}
-
-void combine_vertices_mass(float *circles_vertices, Board *board,
-                           float *circles_vertices_mass) {
-    // TODO: Instead of this mess each what's stored in circles_vertices should
-    // be a struct called circle_vertix which contains both x,y,z and mass.
-    for (int i = 0; i < board->n_circles; i++) {
-        for (int j = 0; j < N_TRIANGLES+1; j++) {
-            int index_vertices = CIRCLES_VERTICES_ARRAY_LENGTH(i) + j * 3;
-            int index_vertices_mass = VERTICES_MASS_ARRAY_LENGTH(i) + j * 4;
-            for (int k = 0; k < 3; k++) {
-                // Copy vertices
-                circles_vertices_mass[index_vertices_mass + k] =
-                    circles_vertices[index_vertices + k];
-            }
-            // Copy color
-            circles_vertices_mass[index_vertices_mass + 3] =
-                0.1*i + 0.1; // TODO:Make this copy the actual color
-        }
     }
 }
 
