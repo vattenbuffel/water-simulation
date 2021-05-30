@@ -313,7 +313,7 @@ int main() {
 
         // Calculate the water droplets and obstacles based on grid
         circle_from_grid(board.grid, &circles, board.n_circles);
-        board_obstacles_from_grid(board.grid, obstacles_vertices,
+        obstacles_from_grid(board.grid, obstacles_vertices,
                                   board.n_obstacles);
 
         // input

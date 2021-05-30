@@ -1,6 +1,8 @@
 #ifndef OBSTACLE_CREATOR_H
 #define OBSTACLE_CREATOR_H
 
+#include "board.h"
+
 //======================================//
 // Defines
 //======================================//
@@ -52,5 +54,15 @@ void obstacles_init(float *vertices, float side_length, float *center_x,
  * @param n_triangles
  */
 void obstacles_connecting_vertices(unsigned int *connections, int n_triangles);
+
+/**
+ * @brief
+ *
+ * @param grid
+ * @param vertices
+ * @param n_obstacles
+ */
+void obstacles_from_grid(Cell *grid, float *vertices, int n_obstacles);
+
 
 #endif /*OBSTACLE_CREATOR_H*/

@@ -116,15 +116,6 @@ void board_restart(Board *board);
 /**
  * @brief
  *
- * @param grid
- * @param vertices
- * @param n_obstacles
- */
-void board_obstacles_from_grid(Cell *grid, float *vertices, int n_obstacles);
-
-/**
- * @brief
- *
  * @param board
  * @param x
  * @param y

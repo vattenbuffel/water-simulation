@@ -1,6 +1,8 @@
 #include "obstacle_creator.h"
 #include <math.h>
 #include "circle_creator.h"
+#include "board.h"
+#include "assert_.h"
 
 //======================================//
 // Local function declarations
@@ -49,4 +51,27 @@ void obstacles_connecting_vertices(unsigned int *connections, int n_obstacles) {
             connections[base_index + 2] = top_right_corner + j * 2 + 1;
         }
     }
+}
+
+
+void obstacles_from_grid(Cell *grid, float *vertices, int n_obstacles) {
+    // Idiot check to make sure that the number of obstacles is at least within
+    // what's possible
+    assert_(n_obstacles <= NX * NY && n_obstacles >= 0,
+            "n_obstacles must be between 0 and NX*NY");
+
+    int center_i = 0;
+    float center_x[n_obstacles];
+    float center_y[n_obstacles];
+    for (int i = 0; i < NX * NY; i++) {
+        state_type state = grid[i].state;
+        if (state == states_obstacle) {
+            center_x[center_i] = INDEX_TO_X(i);
+            center_y[center_i] = INDEX_TO_Y(i);
+            center_i++;
+        }
+    }
+
+    obstacles_init(vertices, OBSTACLE_SIDE_LENGTH, center_x, center_y,
+                   n_obstacles);
 }
