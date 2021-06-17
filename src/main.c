@@ -13,13 +13,6 @@
 #include <string.h>
 #include <time.h>
 
-/* TODO:
- *   Massively speed up calculating the positions of water
- *   Make mouse placement smoothing by always placing when mouse is pressed
- *   Fix bug with replecating water
- *   Why can't NX=NY=500?
- */
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 /**
@@ -93,7 +86,7 @@ const char *fragmentShaderSourceCircles =
     "   float alpha = 0.3f - 0.5f * mass_processed;\n"
     "   FragColor = vec4(0.0f, greenColor, blueColor, alpha);\n"
     "}\n\0";
-    //1.0f - 0.5f * min(mass, 1.0f)\n;"
+// 1.0f - 0.5f * min(mass, 1.0f)\n;"
 
 const char *vertexShaderSourceObstacle =
     "#version 330 core\n"
@@ -291,6 +284,9 @@ int main() {
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+    printf("Hello\nPress 1 to place water, 2 to press obstacle and 3 to place "
+           "background.\n");
+
     double t_prev = glfwGetTime();
     int print_every = 100;
     int i = 0;
@@ -312,8 +308,7 @@ int main() {
 
         // Calculate the water droplets and obstacles based on grid
         circle_from_grid(board.grid, &circles, board.n_circles);
-        obstacles_from_grid(board.grid, obstacles_vertices,
-                                  board.n_obstacles);
+        obstacles_from_grid(board.grid, obstacles_vertices, board.n_obstacles);
 
         // input
         // -----

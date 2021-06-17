@@ -58,7 +58,7 @@
 #define BOARD_MIN_MASS 0.0001
 
 // Max flow per frame
-#define BOARD_MAX_FLOW 10
+#define BOARD_MAX_FLOW 0.3
 
 // Min flow per frame. Must be greater than or equal to BOARD_MIN_MASS/BOARD_SIDEWAYS_DIV_FACTOR
 #define BOARD_MIN_FLOW (BOARD_MIN_MASS/BOARD_SIDEWAYS_DIV_FACTOR)
