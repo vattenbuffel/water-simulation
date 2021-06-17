@@ -86,7 +86,7 @@ void board_modify_grid(Board *board, int x, int y, int resulting_state) {
     assert_(y <= NY - 1 && y >= 0,
             "Grid_y must be smaller than NY and greater than 0");
 
-    // Update the counters of how many obstacles and waters there ar1e
+    // Update the counters of how many obstacles and waters there are
     int index = INDEX_OF_POS(x, y);
     state_type old_state = board->grid[index].state;
     board_inc_counter(board, resulting_state);
@@ -139,7 +139,6 @@ void board_simulate(Board *board, Board *new_board) {
                 float mass_to_move = possible_mass_below - mass_below;
                 float flow = MIN(cur_mass, mass_to_move);
                 flow = BOARD_LIMIT_FLOW(flow);
-                if (flow<0) printf("flow: %f\n", flow);
                 cur_mass -= flow;
 
                 // Update the water contents in the cell below
