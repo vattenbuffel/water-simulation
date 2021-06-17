@@ -284,8 +284,9 @@ int main() {
     // uncomment this call to draw in wireframe polygons.
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    printf("Hello\nPress 1 to place water, 2 to press obstacle and 3 to place "
-           "background.\n");
+    printf("Hello\nPress 1 to place water, 2 to press obstacle and 3 to place  "
+           "background. Press a to start simulation, d to stop it and r+enter "
+           "to restart.\n");
 
     double t_prev = glfwGetTime();
     int print_every = 100;
