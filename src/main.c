@@ -15,7 +15,6 @@
 
 /* TODO:
  *   Massively speed up calculating the positions of water
- *   The water should be darker the more there is
  *   Make mouse placement smoothing by always placing when mouse is pressed
  *   Fix bug with replecating water
  *   Why can't NX=NY=500?

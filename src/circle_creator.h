@@ -12,7 +12,7 @@
 #define RADIUS (1 * SCR_WIDTH / NY)
 
 // How many triangle each cricle consists of
-#define N_TRIANGLES 5
+#define N_TRIANGLES 50
 
 // Macro to calculate how long an array needs to be to store both the vertices
 // of water circles and it's mass
