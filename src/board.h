@@ -58,13 +58,16 @@
 #define BOARD_MIN_MASS 0.0001
 
 // Max flow per frame
-#define BOARD_MAX_FLOW 0.1
+#define BOARD_MAX_FLOW 1
 
 // Min flow per frame
 #define BOARD_MIN_FLOW BOARD_MIN_MASS
 
 // MACRO TO LIMIT FLOW
-#define BOARD_LIMIT_FLOW(flow) (MIN((flow), BOARD_MAX_FLOW))
+#define BOARD_LIMIT_FLOW(flow) (MAX((MIN((flow), BOARD_MAX_FLOW)), 0))
+
+// Division factor for flow when water moving sideways
+#define BOARD_SIDEWAYS_DIV_FACTOR 3.0f
 
 enum States {
     states_background,

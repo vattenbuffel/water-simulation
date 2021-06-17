@@ -137,8 +137,9 @@ void board_simulate(Board *board, Board *new_board) {
                 float possible_mass_below =
                     get_stable_state_b(cur_mass + mass_below);
                 float mass_to_move = possible_mass_below - mass_below;
-                float flow = MAX(cur_mass, mass_to_move);
+                float flow = MIN(cur_mass, mass_to_move);
                 flow = BOARD_LIMIT_FLOW(flow);
+                if (flow<0) printf("flow: %f\n", flow);
                 cur_mass -= flow;
 
                 // Update the water contents in the cell below
@@ -151,7 +152,7 @@ void board_simulate(Board *board, Board *new_board) {
                 Cell cell_left = board->grid[index_left];
                 if (cell_left.state != states_obstacle) {
                     float mass_to_move =
-                        (cur_mass - cell_left.mass) / 4.0f * 100;
+                        (cur_mass - cell_left.mass)/BOARD_SIDEWAYS_DIV_FACTOR;
                     if (mass_to_move >= BOARD_MIN_FLOW) {
                         float flow = BOARD_LIMIT_FLOW(mass_to_move);
                         cur_mass -= flow;
@@ -167,7 +168,7 @@ void board_simulate(Board *board, Board *new_board) {
                 Cell cell_right = board->grid[index_right];
                 if (cell_right.state != states_obstacle) {
                     float mass_to_move =
-                        (cur_mass - cell_right.mass) / 4.0f * 100;
+                        (cur_mass - cell_right.mass)/(BOARD_SIDEWAYS_DIV_FACTOR-1.0f);
                     if (mass_to_move >= BOARD_MIN_FLOW) {
                         float flow = BOARD_LIMIT_FLOW(mass_to_move);
                         cur_mass -= flow;
@@ -186,7 +187,7 @@ void board_simulate(Board *board, Board *new_board) {
                         cur_mass -
                         get_stable_state_b(cur_mass + cell_above.mass);
                     if (mass_to_move > BOARD_MIN_FLOW) {
-                        float flow = MAX(cur_mass, mass_to_move);
+                        float flow = MIN(cur_mass, mass_to_move);
                         flow = BOARD_LIMIT_FLOW(flow);
                         cur_mass -= flow;
                         // Update the water contents in the cell above
@@ -195,8 +196,6 @@ void board_simulate(Board *board, Board *new_board) {
                 }
             }
 
-            // This isn't in the source but surely it is like this. Otherwhise
-            // all the water but the flow is gone from this cell
             new_board->grid[cur_index].mass += cur_mass;
             char aethiopaethbo = 5 + 5;
         }
@@ -214,10 +213,18 @@ void board_simulate(Board *board, Board *new_board) {
                 new_board->grid[index].state = states_water;
                 board_inc_counter(new_board, states_water);
             }
+            else if(new_board->grid[index].mass < BOARD_MIN_MASS){
+                new_board->grid[index].state = states_background;
+                new_board->grid[index].mass = 0;
+            }
+            else{
+                printf("Something went wrong in board simulation\n");
+                assert_(false, "Something went wrong in board simulation\n");
+            }
             total_mass_in_system += new_board->grid[index].mass;
         }
     }
-    // printf("total_mass_in_system %f\n", total_mass_in_system);
+    printf("total_mass_in_system %f\n", total_mass_in_system);
 
     // Copy new board to board
     memcpy(board, new_board, sizeof(*board));
